@@ -8,7 +8,7 @@ from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, Seq2SeqT
 from models.utils import *
 
 # Settings
-SUBSET_SIZE = 0.01
+SUBSET_SIZE = 1
 DATASET_DIR = 'data'
 
 
@@ -30,7 +30,7 @@ class TrainModel:
         self.device = select_device(param_args.gpu)
         self.tokenizer = AutoTokenizer.from_pretrained(self.base_model)   
         self._setup_dataset()
-        self._preprocess_data()
+        self._preprocess_data(task=param_args.task)
 
         # download this... refactor code later
         try:
@@ -120,13 +120,13 @@ class TrainModel:
 
         # Only label as target
         if task == 0:
-            updated_dataset = self.dataset.map(lambda example: {"input":"premise: " + example["premise"] + " hypothesis: " + example["hypothesis"],"target": example['label']}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
+            updated_dataset = self.dataset.map(lambda example: {"input" : "premise: " + example["premise"] + " hypothesis: " + example["hypothesis"], "target" : self.labels_dict[example["label"]]}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
         # Label in input and explanation1 as target
         elif task == 1:
-            updated_dataset = self.dataset.map(lambda example: {"input":"premise: " + example["premise"] + " hypothesis: " + example["hypothesis"] + " label: " + str(example["label"]),"target": example['explanation_1']}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
+            updated_dataset = self.dataset.map(lambda example: {"input" : "premise: " + example["premise"] + " hypothesis: " + example["hypothesis"] + " label: " + self.labels_dict[example["label"]], "target" : example['explanation_1']}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
         # Label and explanation1 both as targets
         else:
-            updated_dataset = self.dataset.map(lambda example: {"input" : "premise: " + example["premise"] + " hypothesis: " + example["hypothesis"], "target": self.labels_dict[example["label"]] + ": " + example['explanation_1']}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
+            updated_dataset = self.dataset.map(lambda example: {"input" : "premise: " + example["premise"] + " hypothesis: " + example["hypothesis"], "target" : self.labels_dict[example["label"]] + ": " + example['explanation_1']}, remove_columns=["premise","hypothesis", "label", "explanation_1", "explanation_2", "explanation_3"])
         
         # Tokenize
         encoded_dataset = updated_dataset.map(lambda example: self._tokenize(example), batched=True)
@@ -209,6 +209,7 @@ def run(args):
 
     print('Welcome')
     print('You are about to train a beast of a model, enjoy :)')
+    print(f'Training task: {args.task}')
     print('Training on the following device: {}'.format(select_device(args.gpu)))
 
     # set up some stuff here

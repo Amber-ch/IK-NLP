@@ -15,7 +15,6 @@ def run(args):
     except LookupError:
         nltk.download('punkt')
 
-
     # Load model
     model_name = f'{args.model_dir}/{args.model_name}'
     model_dir = f'{DATASET_DIR}/{model_name}'
@@ -23,8 +22,11 @@ def run(args):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
-    # Format input string
-    test_input = f'premise: {args.premise[0]}. hypothesis: {args.hypothesis}[0].'
+    # Format input string according to model type
+    if args.label is None:
+        test_input = f'premise: {args.premise[0]}. hypothesis: {args.hypothesis[0]}.'
+    else:
+        test_input = f'premise: {args.premise[0]}. hypothesis: {args.hypothesis[0]}. label: {args.label}'
 
     # Generate prediction
     test_input = tokenizer(test_input, truncation=True, return_tensors="pt")
