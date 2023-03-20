@@ -33,7 +33,10 @@ class TrainModel:
         self._preprocess_data()
 
         # download this... refactor code later
-        nltk.download('punkt')
+        try:
+            nltk.data.find('tokenizers/punkt')
+        except LookupError:
+            nltk.download('punkt')
 
         # Trainer arguments
         self.args = Seq2SeqTrainingArguments(

@@ -10,7 +10,11 @@ DATASET_DIR = 'data'
 def run(args):
 
     # TODO: refactor code
-    nltk.download('punkt')
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+
 
     # Load model
     model_name = f'{args.model_dir}/{args.model_name}'
