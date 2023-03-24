@@ -1,5 +1,7 @@
 import nltk
 import torch
+import os
+import gdown # used to download Scorer model
 import pandas as pd
 from bart_score import BARTScorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -10,6 +12,11 @@ def run(args):
     tokenizer = AutoTokenizer.from_pretrained("rug-nlp-nli/flan-base-nli-explanation")
     model = AutoModelForSeq2SeqLM.from_pretrained("rug-nlp-nli/flan-base-nli-explanation")
     # Load BART scorer
+    # Download scorer if it doesn't exist in bartScorer/bart.pth
+    if (not os.path.exists('bartScorer/bart.pth')):
+        url = 'https://drive.google.com/uc?id=1_7JfF7KOInb7ZrxKHIigTMR4ChVET01m'
+        output = 'bartScorer/bart.pth'
+        gdown.download(url, output, quiet=False, fuzzy= True)
     bart_scorer = BARTScorer(device="cuda" if torch.cuda.is_available() else "cpu", checkpoint='facebook/bart-large-cnn')
     bart_scorer.load(path='models/bart.pth')
     # Load dataset
@@ -28,6 +35,7 @@ def run(args):
     test_input = test_input.tolist() # Convert to list
     test_target = test_target.values.tolist() # Convert to list
     
+    
     # Generate predictions
     generatedResponses = []
     for i in range(len(test_input)):
@@ -37,10 +45,9 @@ def run(args):
         generatedResponses.append(decoded_output)
         
     # Calculate scores
-    
     results = bart_scorer.multi_ref_score(generatedResponses, test_target, agg="max", batch_size=4)
     
     print(results)
-    print("average score: ", sum(results)/len(results))
+    print("Average Score: ", sum(results)/len(results), ". The higher (closer to 0) the better")
 
 run(None)
