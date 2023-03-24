@@ -103,9 +103,13 @@ if __name__ == '__main__':
         help="The type of model used for inference. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
 
+    evaluate_parser = subparsers.add_parser(
+        'evaluate', help='Evaluate')
 
     args = parser.parse_args()
     if args.command == 'train':
         train.run(args)
     if args.command == 'predict':
         predict.run(args)
+    if args.command == 'evaluate':
+        evaluate.run(args)

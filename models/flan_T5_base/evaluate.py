@@ -3,7 +3,7 @@ import torch
 import os
 import gdown # used to download Scorer model
 import pandas as pd
-from bart_score import BARTScorer
+from models.flan_T5_base.bart_score import BARTScorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from datasets import load_dataset
 
@@ -13,12 +13,18 @@ def run(args):
     model = AutoModelForSeq2SeqLM.from_pretrained("rug-nlp-nli/flan-base-nli-explanation")
     # Load BART scorer
     # Download scorer if it doesn't exist in bartScorer/bart.pth
-    if (not os.path.exists('bartScorer/bart.pth')):
+    if not os.path.exists("data/bartScorer"):
+        
+        # if the demo_folder directory is not present 
+        # then create it.
+        os.makedirs("data/bartScorer")
+    if (not os.path.exists('models/flan_T5_base/bartScorer/bart.pth')):
         url = 'https://drive.google.com/uc?id=1_7JfF7KOInb7ZrxKHIigTMR4ChVET01m'
-        output = 'bartScorer/bart.pth'
+        output = 'data/bartScorer/bart.pth'
         gdown.download(url, output, quiet=False, fuzzy= True)
+
     bart_scorer = BARTScorer(device="cuda" if torch.cuda.is_available() else "cpu", checkpoint='facebook/bart-large-cnn')
-    bart_scorer.load(path='models/bart.pth')
+    bart_scorer.load(path='data/bartScorer/bart.pth')
     # Load dataset
     dataset = load_dataset("esnli")
     
@@ -49,5 +55,3 @@ def run(args):
     
     print(results)
     print("Average Score: ", sum(results)/len(results), ". The higher (closer to 0) the better")
-
-run(None)
