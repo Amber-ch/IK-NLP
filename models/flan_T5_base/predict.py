@@ -16,11 +16,15 @@ def run(args):
         nltk.download('punkt')
 
     # Load model
-    model_name = f'{args.model_dir}/{args.model_name}'
-    model_dir = f'{DATASET_DIR}/{model_name}'
+    if args.task == 0:
+        model_name = 'rug-nlp-nli/flan-base-nli-label'
+    elif args.task == 1:
+        model_name = 'rug-nlp-nli/flan-base-nli-explanation'
+    elif args.task == 2:
+        model_name = 'rug-nlp-nli/flan-base-nli-label-explanation'
 
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
     # Format input string according to model type
     if args.label is None:

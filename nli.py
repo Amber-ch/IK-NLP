@@ -87,11 +87,6 @@ if __name__ == '__main__':
         choices=['entailment', 'neutral', 'contradiction'],
     )
     predict_parser.add_argument(
-        "--model_name",
-        default="dummy",
-        help="Name of the model (e.g. the most recently trained model). Defaults to \"dummy\""
-    )
-    predict_parser.add_argument(
         "--model_dir",
         default="flan-t5-base-nli-explanation-generation",
         help="Name of the model directory. Defaults to \"flan-t5-base-nli-explanation-generation\""
@@ -103,8 +98,11 @@ if __name__ == '__main__':
         help="The type of model used for inference. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
 
+
+    # An evaluate command
     evaluate_parser = subparsers.add_parser(
         'evaluate', help='Evaluate')
+
 
     args = parser.parse_args()
     if args.command == 'train':
