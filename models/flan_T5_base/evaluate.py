@@ -1,6 +1,6 @@
-import nltk
-import torch
 import os
+import numpy as np
+import torch
 import gdown  # used to download Scorer model
 import pandas as pd
 from models.flan_T5_base.bart_score import BARTScorer
@@ -16,27 +16,29 @@ def run(args):
     full_test_set = pd.DataFrame(dataset["test"], columns=[
                                  'premise', 'hypothesis', 'label', 'explanation_1', 'explanation_2', 'explanation_3'])
 
-    # Conver label to string based on the following mapping:
-    # 0: entailment
-    # 1: neutral
-    # 2: contradiction
+    # Convert labels to string based on the mapping.
     full_test_set['label'] = full_test_set['label'].map(
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
-    # TEMPORARY: Only keep first 2 rows, for easy testing
-    full_test_set = full_test_set.head(2)
+    # TEMPORARY: Only keep first 50 rows, for easy testing
+    full_test_set = full_test_set.head(50)
     #
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
-    
-    input_nli_explanation = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis'] + ' label: ' + full_test_set['label']
-    input_nli_label = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis']
-    input_nli_label_explanation = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis']
-    
+
+    input_nli_explanation = 'premise: ' + \
+        full_test_set['premise'] + ' hypothesis: ' + \
+        full_test_set['hypothesis'] + ' label: ' + full_test_set['label']
+    input_nli_label = 'premise: ' + \
+        full_test_set['premise'] + ' hypothesis: ' + \
+        full_test_set['hypothesis']
+    input_nli_label_explanation = 'premise: ' + \
+        full_test_set['premise'] + ' hypothesis: ' + \
+        full_test_set['hypothesis']
+
     input_nli_explanation = input_nli_explanation.tolist()  # Convert to list
     input_nli_label = input_nli_label.tolist()  # Convert to list
     input_nli_label_explanation = input_nli_label_explanation.tolist()  # Convert to list
-    
 
     # Format target explanations
     test_target_explanations = full_test_set[[
@@ -50,22 +52,36 @@ def run(args):
     print("Evaluating model: rug-nlp-nli/flan-base-nli-explanation")
     model_results_explanation = evaluateModel(
         "rug-nlp-nli/flan-base-nli-explanation", input_nli_explanation, test_target_explanations, test_target_labels)
-    
+
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label")
     model_results_label = evaluateModel(
         "rug-nlp-nli/flan-base-nli-label", input_nli_label, test_target_explanations, test_target_labels)
-    
+
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label-explanation")
     model_results_label_explanation = evaluateModel(
         "rug-nlp-nli/flan-base-nli-label-explanation", input_nli_label_explanation, test_target_explanations, test_target_labels)
 
-    print("Concatenating results and saving to a .csv file...")
+    print("Exporting results to .csv file...")
     # Make dataframe with the input and the results
-    results = pd.concat([full_test_set, model_results_explanation, model_results_label, 
+    results = pd.concat([full_test_set, model_results_explanation, model_results_label,
                         model_results_label_explanation], axis=1)
-    
+
+    # Order in increasing order of 'rug-nlp-nli/flan-base-nli-label-explanation_neural_score', so that the worst results are at the top
+    results = results.sort_values(
+        by='rug-nlp-nli/flan-base-nli-label-explanation_neural_score', ascending=True)
+
     # Save the results to a .csv file
     results.to_csv('results.csv', index=False)
+
+    # Generate summary of results
+    print("Generating summary of results...")
+    summary = generateSummary(results)
+
+    # Save summary to .txt file
+    with open('summary.txt', 'w') as f:
+        f.write(summary)
+
+    print("Evaluation done!")
 
 
 def evaluateModel(model_name, input, target_explanations, target_labels):
@@ -147,12 +163,43 @@ def neuralEvaluationExplanations(predictions, target):
     # Calculate scores
     results = bart_scorer.multi_ref_score(
         predictions, target, agg="max", batch_size=4)
-
-    # construct dataframe with results and predictions
+    # Apply np.exp() to column, so that the scores are between 0 and 1
+    results = np.exp(results) 
+    # Construct dataframe with results and predictions
     results = pd.DataFrame(results, columns=['neural_score'])
     results['prediction'] = predictions
-
     return results
+
+
+def generateSummary(results):
+    summary = ""
+    # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_neural_score
+    mean = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].mean().round(2)
+    std = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].std().round(2)
+    summary += "Average explanation score of nli-explanation: " + \
+        str(mean) + " (std: " + str(std) + ")\n"
+
+    # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-label_neural_score
+    mean = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].mean().round(2)
+    std = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].std().round(2)
+    summary += "Average explanation score of nli-label-explanation: " + \
+        str(mean) + " (std: " + str(std) + ")\n"
+
+    # Find percentage of correct labels of nli-label
+    correct_labels = results['rug-nlp-nli/flan-base-nli-label_correct_label?'].sum()
+    total_labels = len(
+        results['rug-nlp-nli/flan-base-nli-label_correct_label?'])
+    percentage = str(round(correct_labels/total_labels, 2))
+    summary += "Percentage of correct labels of nli-label: " + percentage + "\n"
+
+    # Find percentage of correct labels of nli-label-explanation
+    correct_labels = results['rug-nlp-nli/flan-base-nli-label-explanation_correct_label?'].sum()
+    total_labels = len(
+        results['rug-nlp-nli/flan-base-nli-label-explanation_correct_label?'])
+    percentage = str(round(correct_labels/total_labels, 2))
+    summary += "Percentage of correct labels of nli-label-explanation: " + percentage + "\n"
+
+    return summary
 
 
 def splitPredictions(model_name, predictions):
