@@ -23,69 +23,52 @@ def run(args):
     full_test_set['label'] = full_test_set['label'].map(
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
-    # TEMPORARY: Only keep first 3 rows, for easy testing
-    full_test_set = full_test_set.head(3)
+    # TEMPORARY: Only keep first 2 rows, for easy testing
+    full_test_set = full_test_set.head(2)
     #
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
-    test_input_without_label = 'premise: ' + \
-        full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis']
-    test_input_with_label = 'premise: ' + \
-        full_test_set['premise'] + ' hypothesis: ' + \
-        full_test_set['hypothesis'] + ' label: ' + full_test_set['label']
-    test_input_without_label = test_input_without_label.tolist()  # Convert to list
-    test_input_with_label = test_input_with_label.tolist()  # Convert to list
+    
+    input_nli_explanation = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis'] + ' label: ' + full_test_set['label']
+    input_nli_label = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis']
+    input_nli_label_explanation = 'premise: ' + full_test_set['premise'] + ' hypothesis: ' + full_test_set['hypothesis']
+    
+    input_nli_explanation = input_nli_explanation.tolist()  # Convert to list
+    input_nli_label = input_nli_label.tolist()  # Convert to list
+    input_nli_label_explanation = input_nli_label_explanation.tolist()  # Convert to list
+    
 
-    # Format target string
-    test_target = full_test_set[[
+    # Format target explanations
+    test_target_explanations = full_test_set[[
         'explanation_1', 'explanation_2', 'explanation_3']]
-    test_target = test_target.values.tolist()  # Convert to list
+    test_target_explanations = test_target_explanations.values.tolist()  # Convert to list
+
+    # Format target labels
+    test_target_labels = full_test_set['label'].tolist()  # Convert to list
 
     # Evaluate models
     print("Evaluating model: rug-nlp-nli/flan-base-nli-explanation")
     model_results_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-explanation", test_input_with_label, test_target)
+        "rug-nlp-nli/flan-base-nli-explanation", input_nli_explanation, test_target_explanations, test_target_labels)
+    
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label")
-    # model_results_label = evaluateModel(
-    #     "rug-nlp-nli/flan-base-nli-label", test_input_without_label, test_target)
+    model_results_label = evaluateModel(
+        "rug-nlp-nli/flan-base-nli-label", input_nli_label, test_target_explanations, test_target_labels)
+    
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label-explanation")
     model_results_label_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-label-explanation", test_input_without_label, test_target)
+        "rug-nlp-nli/flan-base-nli-label-explanation", input_nli_label_explanation, test_target_explanations, test_target_labels)
 
     print("Concatenating results and saving to a .csv file...")
-    # make dataframe with the input and the results
-    results = pd.concat([full_test_set, model_results_explanation,
+    # Make dataframe with the input and the results
+    results = pd.concat([full_test_set, model_results_explanation, model_results_label, 
                         model_results_label_explanation], axis=1)
-    # save the results to a csv file
+    
+    # Save the results to a .csv file
     results.to_csv('results.csv', index=False)
 
 
-def splitPredictions(model_name, predictions):
-    # Split in labels and explanations
-    # Create empty lists
-    generated_labels = [None] * len(predictions)
-    generated_explanations = [None] * len(predictions)
-    if model_name == "rug-nlp-nli/flan-base-nli-label-explanation":
-        # split based on ": " which follows the label, if it exists
-        for i in range(len(predictions)):
-            split_predictions = predictions[i].split(": ")
-            generated_labels[i] = split_predictions[0]
-            generated_explanations[i] = split_predictions[1]
-
-    if model_name == "rug-nlp-nli/flan-base-nli-label":
-        # output is only the label
-        generated_labels = predictions
-        generated_explanations = None
-
-    if model_name == "rug-nlp-nli/flan-base-nli-explanation":
-        # output is only the explanation
-        generated_labels = None
-        generated_explanations = predictions
-
-    return generated_labels, generated_explanations
-
-
-def evaluateModel(model_name, input, target):
+def evaluateModel(model_name, input, target_explanations, target_labels):
     # Load model and tokenizer
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -96,21 +79,39 @@ def evaluateModel(model_name, input, target):
     generated_labels, generated_explanations = splitPredictions(
         model_name, generated_predictions)
 
-    # First evaluate explanations: 
+    # create empty dataframe
+    results = pd.DataFrame()
+    # First evaluate explanations:
     if generated_explanations != None:
         # Calculate scores
-        neural_results = neuralEvaluationExplanations(generated_predictions, target)
+        neural_results = neuralEvaluationExplanations(
+            generated_predictions, target_explanations)
         # We add the model name, so that the results of different models are distinguishable
         neural_results = neural_results.add_prefix(model_name + '_')
         # amber_results = neuralEvaluation(
         #     generated_predictions, target) # for later, when we have AMBER
         # return pd.concat([neural_results, amber_results], axis=1)  # for later, when we have AMBER
-        
+        results = pd.concat([results, neural_results], axis=1)
+
     # Then evaluate labels:
     if generated_labels != None:
-        print("labels exist. TODO: evaluate labels")
-    
-    return pd.concat([neural_results], axis=1)
+        # Evaluate labels
+        label_results = evaluateLabels(generated_labels, target_labels)
+        label_results = label_results.add_prefix(model_name + '_')
+        results = pd.concat([results, label_results], axis=1)
+
+    return results
+
+
+def evaluateLabels(output, target):
+    # Evaluates whether the model predicted the correct label. Returns a dataframe with the results.
+    label_results = pd.DataFrame()
+    # for each output, check if it is equal to the target
+    for i in range(len(output)):
+        label_results.at[i, 'correct_label?'] = (output[i] == target[i])
+        label_results.at[i, 'label_difference'] = " predicted: " + \
+            output[i] + ", target: " + target[i]
+    return label_results
 
 
 def generatePredictions(model, tokenizer, input):
@@ -152,3 +153,28 @@ def neuralEvaluationExplanations(predictions, target):
     results['prediction'] = predictions
 
     return results
+
+
+def splitPredictions(model_name, predictions):
+    # Split in labels and explanations
+    # Create empty lists
+    generated_labels = [None] * len(predictions)
+    generated_explanations = [None] * len(predictions)
+    if model_name == "rug-nlp-nli/flan-base-nli-label-explanation":
+        # split based on ": " which follows the label, if it exists
+        for i in range(len(predictions)):
+            split_predictions = predictions[i].split(": ")
+            generated_labels[i] = split_predictions[0]
+            generated_explanations[i] = split_predictions[1]
+
+    if model_name == "rug-nlp-nli/flan-base-nli-label":
+        # output is only the label
+        generated_labels = predictions
+        generated_explanations = None
+
+    if model_name == "rug-nlp-nli/flan-base-nli-explanation":
+        # output is only the explanation
+        generated_labels = None
+        generated_explanations = predictions
+
+    return generated_labels, generated_explanations
