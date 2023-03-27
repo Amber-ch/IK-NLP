@@ -1,5 +1,0 @@
-{
-    "python.formatting.provider": "black",
-    "python.linting.enabled": false,
-    "editor.formatOnSave": true
-}
