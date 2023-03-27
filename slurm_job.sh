@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=10:00:00
+#SBATCH --time=24:00:00
 #SBATCH --gres=gpu:v100:1
 #SBATCH --partition=gpu
 #SBATCH --job-name=NLI-training
@@ -12,6 +12,6 @@ module load OpenSSL/1.1
 
 source /data/$USER/.envs/nli_project/bin/activate
 
-python3 nli.py train --gpu --num_train_epochs 3 --logging_steps 100 --save_steps 10000 --eval_steps 200 --batch_size 32
+python3 nli.py train --gpu --num_train_epochs 3 --logging_steps 100 --save_steps 10000 --eval_steps 200 --batch_size 32 --task 1
 
 deactivate
