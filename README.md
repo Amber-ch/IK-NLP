@@ -11,13 +11,13 @@ The general task is to predict an inference label in the form of `entailment`, `
 We split up the general task of NLI into three sub-tasks:
 
 Task | Definition | Prompt
-|---|---|---|---|
+|---|---|---|
 | 0 | Predicting the inference label from the premise and hypothesis. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]."
 | 1 | Generating an explanation from the premise, hypothesis and inference label. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]. label: [LABEL]"
 | 2 | Jointly predicting the inference label and generating an explanation from the premise and hypothesis. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]."
 
 Task | Model
-|---|---|---|---|
+|---|---|---|
 | 0 | [rug-nlp-nli/flan-base-nli-label](https://huggingface.co/rug-nlp-nli/flan-base-nli-label)
 | 1 | [rug-nlp-nli/flan-base-nli-explanation](https://huggingface.co/rug-nlp-nli/flan-base-nli-explanation)
 | 2 | [rug-nlp-nli/flan-base-nli-label-explanation](https://huggingface.co/rug-nlp-nli/flan-base-nli-label-explanation)
