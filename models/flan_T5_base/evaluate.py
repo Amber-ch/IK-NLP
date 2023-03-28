@@ -218,10 +218,10 @@ def textEvaluationExplanations(predictions, target):
 
     rouge_scores_explode.to_csv('results/rouge_scores.csv')
 
-    for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
-        print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))
-        print('stdev ', metric, ': ', np.std(rouge_scores_explode[metric]))
-        print()
+    # for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
+    #     print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))
+    #     print('stdev ', metric, ': ', np.std(rouge_scores_explode[metric]))
+    #     print()
 
     return rouge_scores_explode
 
@@ -230,13 +230,25 @@ def generateSummary(results):
     # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_neural_score
     mean = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].mean().round(2)
     std = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].std().round(2)
-    summary += "Average explanation score of nli-explanation: " + \
+    summary += "Average explanation neural score of nli-explanation: " + \
         str(mean) + " (std: " + str(std) + ")\n"
 
     # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-label_neural_score
     mean = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].mean().round(2)
     std = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].std().round(2)
-    summary += "Average explanation score of nli-label-explanation: " + \
+    summary += "Average explanation neural score of nli-label-explanation: " + \
+        str(mean) + " (std: " + str(std) + ")\n"
+    
+    # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_text_score
+    mean = results['rug-nlp-nli/flan-base-nli-explanation_text_score'].mean().round(2)
+    std = results['rug-nlp-nli/flan-base-nli-explanation_text_score'].std().round(2)
+    summary += "Average explanation text score of nli-explanation: " + \
+        str(mean) + " (std: " + str(std) + ")\n"    
+    
+    # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-label_text_score
+    mean = results['rug-nlp-nli/flan-base-nli-label-explanation_text_score'].mean().round(2)
+    std = results['rug-nlp-nli/flan-base-nli-label-explanation_text_score'].std().round(2)
+    summary += "Average explanation text score of nli-label-explanation: " + \
         str(mean) + " (std: " + str(std) + ")\n"
 
     # Find percentage of correct labels of nli-label
