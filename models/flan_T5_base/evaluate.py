@@ -11,6 +11,11 @@ from datasets import load_dataset, load_metric
 
 
 def run(args):
+    
+    # Make sure a results folder exists
+    if not os.path.exists("results"):
+        os.makedirs("results")
+
     # Load dataset
     dataset = load_dataset("esnli")
 
@@ -73,14 +78,14 @@ def run(args):
         by='rug-nlp-nli/flan-base-nli-label-explanation_neural_score', ascending=True)
 
     # Save the results to a .csv file
-    results.to_csv('results.csv', index=False)
+    results.to_csv('results/allResults.csv', index=False)
 
     # Generate summary of results
     print("Generating summary of results...")
     summary = generateSummary(results)
 
     # Save summary to .txt file
-    with open('summary.txt', 'w') as f:
+    with open('results/summary.txt', 'w') as f:
         f.write(summary)
 
     print("Evaluation done!")
@@ -173,6 +178,8 @@ def neuralEvaluationExplanations(predictions, target):
     # Construct dataframe with results and predictions
     results = pd.DataFrame(results, columns=['neural_score'])
     results['prediction'] = predictions
+    
+    results.to_csv('results/neural_scores.csv') # save to csv file.
     return results
 
 def textEvaluationExplanations(predictions, target):
@@ -209,7 +216,7 @@ def textEvaluationExplanations(predictions, target):
     rouge_scores_explode['rouge_2_max'] = rouge_2_df.max(axis=1)
     rouge_scores_explode['rouge_L_max'] = rouge_L_df.max(axis=1)
 
-    rouge_scores_explode.to_csv('rouge_scores.csv')
+    rouge_scores_explode.to_csv('results/rouge_scores.csv')
 
     for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
         print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))

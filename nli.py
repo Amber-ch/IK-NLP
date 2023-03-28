@@ -110,10 +110,10 @@ if __name__ == '__main__':
         "--eval_type",
         default="both",
         type=str,
-        help="'neural' or 'text' evaluation or both. Defaults to 'both'"
+        help="'neural' or 'text' evaluation or 'both'. Defaults to 'both'"
     )
     
-    
+
 
     args = parser.parse_args()
     if args.command == 'train':
