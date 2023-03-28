@@ -1,11 +1,13 @@
 import os
 import numpy as np
+import nltk
+import re
 import torch
 import gdown  # used to download Scorer model
 import pandas as pd
 from models.flan_T5_base.bart_score import BARTScorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from datasets import load_dataset
+from datasets import load_dataset, load_metric
 
 
 def run(args):
@@ -20,8 +22,8 @@ def run(args):
     full_test_set['label'] = full_test_set['label'].map(
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
-    # TEMPORARY: Only keep first 50 rows, for easy testing
-    full_test_set = full_test_set.head(50)
+    # TEMPORARY: Only keep first 1 rows, for easy testing
+    full_test_set = full_test_set.head(1)
     #
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
@@ -51,15 +53,15 @@ def run(args):
     # Evaluate models
     print("Evaluating model: rug-nlp-nli/flan-base-nli-explanation")
     model_results_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-explanation", input_nli_explanation, test_target_explanations, test_target_labels)
+        "rug-nlp-nli/flan-base-nli-explanation", input_nli_explanation, test_target_explanations, test_target_labels, args)
 
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label")
     model_results_label = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-label", input_nli_label, test_target_explanations, test_target_labels)
+        "rug-nlp-nli/flan-base-nli-label", input_nli_label, test_target_explanations, test_target_labels, args)
 
     print("Evaluating model: rug-nlp-nli/flan-base-nli-label-explanation")
     model_results_label_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-label-explanation", input_nli_label_explanation, test_target_explanations, test_target_labels)
+        "rug-nlp-nli/flan-base-nli-label-explanation", input_nli_label_explanation, test_target_explanations, test_target_labels, args)
 
     print("Exporting results to .csv file...")
     # Make dataframe with the input and the results
@@ -84,11 +86,12 @@ def run(args):
     print("Evaluation done!")
 
 
-def evaluateModel(model_name, input, target_explanations, target_labels):
+def evaluateModel(model_name, input, target_explanations, target_labels, args):
     # Load model and tokenizer
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
+    eval_type = args.eval_type
+    
     # Generate predictions
     generated_predictions = generatePredictions(model, tokenizer, input)
     # Split predictions in labels and explanations, depending on what the model produced
@@ -99,15 +102,17 @@ def evaluateModel(model_name, input, target_explanations, target_labels):
     results = pd.DataFrame()
     # First evaluate explanations:
     if generated_explanations != None:
+        if eval_type in ['neural', 'both']:
         # Calculate scores
-        neural_results = neuralEvaluationExplanations(
-            generated_predictions, target_explanations)
+            neural_results = neuralEvaluationExplanations(
+            generated_predictions, target_explanations)            
+            neural_results = neural_results.add_prefix(model_name + '_')
+            results = pd.concat([results, neural_results], axis=1)
+        if eval_type in ['text', 'both']:
         # We add the model name, so that the results of different models are distinguishable
-        neural_results = neural_results.add_prefix(model_name + '_')
-        # amber_results = neuralEvaluation(
-        #     generated_predictions, target) # for later, when we have AMBER
-        # return pd.concat([neural_results, amber_results], axis=1)  # for later, when we have AMBER
-        results = pd.concat([results, neural_results], axis=1)
+            text_results = textEvaluationExplanations(generated_predictions, target_explanations) # for later, when we have AMBER
+            text_results = text_results.add_prefix(model_name + '_')
+            results = pd.concat([results, text_results], axis=1)        
 
     # Then evaluate labels:
     if generated_labels != None:
@@ -170,6 +175,48 @@ def neuralEvaluationExplanations(predictions, target):
     results['prediction'] = predictions
     return results
 
+def textEvaluationExplanations(predictions, target):
+    metric = load_metric("rouge")
+    scores_labels_predictions_df = compute_metrics(predictions, target)
+
+    rouge_scores_explode = scores_labels_predictions_df
+
+    rouge_1_columns = ['rouge_1_1', 'rouge_1_2', 'rouge_1_3']
+    rouge_2_columns = ['rouge_2_1', 'rouge_2_2', 'rouge_2_3']
+    rouge_L_columns = ['rouge_L_1', 'rouge_L_2', 'rouge_L_3']
+
+    rouge_scores_explode[['label_1', 'label_2', 'label_3']] = pd.DataFrame(scores_labels_predictions_df.labels.tolist(), index=scores_labels_predictions_df.index)
+    rouge_scores_explode[rouge_1_columns] = pd.DataFrame(scores_labels_predictions_df.rouge_1.tolist(), index=scores_labels_predictions_df.index)
+    rouge_scores_explode[rouge_2_columns] = pd.DataFrame(scores_labels_predictions_df.rouge_2.tolist(), index=scores_labels_predictions_df.index)
+    rouge_scores_explode[rouge_L_columns] = pd.DataFrame(scores_labels_predictions_df.rouge_L.tolist(), index=scores_labels_predictions_df.index)
+
+    f_rouge_1_1 = rouge_scores_explode['rouge_1_1'].apply(lambda x: x.fmeasure) 
+    f_rouge_1_2 = rouge_scores_explode['rouge_1_2'].apply(lambda x: x.fmeasure) 
+    f_rouge_1_3 = rouge_scores_explode['rouge_1_3'].apply(lambda x: x.fmeasure) 
+    rouge_1_df = pd.DataFrame(data=[f_rouge_1_1, f_rouge_1_2, f_rouge_1_3]).T
+
+    f_rouge_2_1 = rouge_scores_explode['rouge_2_1'].apply(lambda x: x.fmeasure) 
+    f_rouge_2_2 = rouge_scores_explode['rouge_2_2'].apply(lambda x: x.fmeasure) 
+    f_rouge_2_3 = rouge_scores_explode['rouge_2_3'].apply(lambda x: x.fmeasure) 
+    rouge_2_df = pd.DataFrame(data=[f_rouge_2_1, f_rouge_2_2, f_rouge_2_3]).T
+
+    f_rouge_L_1 = rouge_scores_explode['rouge_L_1'].apply(lambda x: x.fmeasure) 
+    f_rouge_L_2 = rouge_scores_explode['rouge_L_2'].apply(lambda x: x.fmeasure) 
+    f_rouge_L_3 = rouge_scores_explode['rouge_L_3'].apply(lambda x: x.fmeasure) 
+    rouge_L_df = pd.DataFrame(data=[f_rouge_L_1, f_rouge_L_2, f_rouge_L_3]).T
+
+    rouge_scores_explode['rouge_1_max'] = rouge_1_df.max(axis=1)
+    rouge_scores_explode['rouge_2_max'] = rouge_2_df.max(axis=1)
+    rouge_scores_explode['rouge_L_max'] = rouge_L_df.max(axis=1)
+
+    rouge_scores_explode.to_csv('rouge_scores.csv')
+
+    for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
+        print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))
+        print('stdev ', metric, ': ', np.std(rouge_scores_explode[metric]))
+        print()
+
+    return rouge_scores_explode
 
 def generateSummary(results):
     summary = ""
@@ -201,7 +248,6 @@ def generateSummary(results):
 
     return summary
 
-
 def splitPredictions(model_name, predictions):
     # Split in labels and explanations
     # Create empty lists
@@ -225,3 +271,24 @@ def splitPredictions(model_name, predictions):
         generated_explanations = predictions
 
     return generated_labels, generated_explanations
+
+def compute_metrics(predictions, targets):
+
+    metric = load_metric("rouge")
+
+    # Compute ROUGE scores
+    result = metric.compute(predictions=predictions, references=targets,
+                            use_stemmer=True)
+    rouge_1 = []
+    rouge_2 = []
+    rouge_L = []
+    for i in range(len(predictions)):
+      result = [metric.compute(predictions=[predictions[i]]*3, references=targets[i], use_stemmer=True, use_aggregator=False)]
+
+      rouge_1.append(result[0]['rouge1'])
+      rouge_2.append(result[0]['rouge2'])
+      rouge_L.append(result[0]['rougeL'])
+
+    scores_labels_predictions = pd.DataFrame({"prediction": predictions, "labels": targets, "rouge_1":rouge_1, "rouge_2":rouge_2, "rouge_L":rouge_L})
+
+    return scores_labels_predictions

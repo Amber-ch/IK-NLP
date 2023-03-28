@@ -105,6 +105,15 @@ if __name__ == '__main__':
 
     evaluate_parser = subparsers.add_parser(
         'evaluate', help='Evaluate')
+    
+    evaluate_parser.add_argument(
+        "--eval_type",
+        default="both",
+        type=str,
+        help="'neural' or 'text' evaluation or both. Defaults to 'both'"
+    )
+    
+    
 
     args = parser.parse_args()
     if args.command == 'train':
