@@ -29,7 +29,7 @@ def run(args):
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
     # TEMPORARY: Only keep first 3 rows, for easy testing
-    full_test_set = full_test_set.head(3)
+    # full_test_set = full_test_set.head(3)
     #
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
@@ -242,51 +242,51 @@ def generateSummary(results, args):
 
     if eval_type in ['neural', 'both']:
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_neural_score
-        mean = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].mean(), 2)
+        std = round(results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].std(), 2)
         summary += "Average explanation neural score of nli-explanation: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-label_neural_score
-        mean = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].mean(), 2)
+        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].std(), 2)
         summary += "Average explanation neural score of nli-label-explanation: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
     if eval_type in ['text', 'both']:
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_1_max
-        mean = results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].mean(), 2)
+        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].std(), 2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_1_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_2_max
-        mean = results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].mean(), 2)
+        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].std(), 2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_2_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_L_max
-        mean = results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].mean(),2)
+        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].std(),2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_L_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_1_max
-        mean = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].mean(),2)
+        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].std(),2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_2_max
-        mean = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].mean(),2)
+        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].std(),2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_L_max
-        mean = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].mean().round(2)
-        std = results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].std().round(2)
+        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].mean(),2)
+        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].std(),2)
         summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
