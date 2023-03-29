@@ -112,7 +112,11 @@ if __name__ == '__main__':
         type=str,
         help="'neural' or 'text' evaluation or 'both'. Defaults to 'both'"
     )
-    
+    evaluate_parser.add_argument(
+        "--gpu",
+        action="store_true",
+        help="Inference on a GPU device."
+    )
 
 
     args = parser.parse_args()

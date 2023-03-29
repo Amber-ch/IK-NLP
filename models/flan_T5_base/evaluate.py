@@ -9,6 +9,7 @@ from models.flan_T5_base.bart_score import BARTScorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from datasets import load_dataset, load_metric
 
+from models.utils import *
 
 def run(args):
     eval_type = args.eval_type
@@ -93,13 +94,16 @@ def run(args):
 
 
 def evaluateModel(model_name, input, target_explanations, target_labels, args):
+    # select appropriate device
+    device = select_device(args.gpu)
+
     # Load model and tokenizer
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     eval_type = args.eval_type
 
     # Generate predictions
-    generated_predictions = generatePredictions(model, tokenizer, input)
+    generated_predictions = generatePredictions(model, tokenizer, input, device)
     # Split predictions in labels and explanations, depending on what the model produced
     generated_labels, generated_explanations = splitPredictions(
         model_name, generated_predictions)
@@ -111,7 +115,7 @@ def evaluateModel(model_name, input, target_explanations, target_labels, args):
         if eval_type in ['neural', 'both']:
             # Calculate scores
             neural_results = neuralEvaluationExplanations(model_name,
-                                                          generated_predictions, target_explanations)
+                                                          generated_predictions, target_explanations, device)
             neural_results = neural_results.add_prefix(model_name + '_')
             results = pd.concat([results, neural_results], axis=1)
         if eval_type in ['text', 'both']:
@@ -142,12 +146,12 @@ def evaluateLabels(output, target):
     return label_results
 
 
-def generatePredictions(model, tokenizer, input):
+def generatePredictions(model, tokenizer, input, device):
     # Generate predictions
     predictions = []
     for i in range(len(input)):
         input[i] = tokenizer(
-            input[i], truncation=True, return_tensors="pt")
+            input[i], truncation=True, return_tensors="pt").to(device)
         output = model.generate(
             **input[i], num_beams=8, do_sample=True, max_new_tokens=64)
         decoded_output = tokenizer.batch_decode(
@@ -157,7 +161,7 @@ def generatePredictions(model, tokenizer, input):
     return predictions
 
 
-def neuralEvaluationExplanations(model_name, predictions, target):
+def neuralEvaluationExplanations(model_name, predictions, target, device):
     # Load BART scorer
     # Download scorer if it doesn't exist in bartScorer/bart.pth
     if not os.path.exists("data/bartScorer"):
@@ -168,8 +172,7 @@ def neuralEvaluationExplanations(model_name, predictions, target):
         output = 'data/bartScorer/bart.pth'
         gdown.download(url, output, quiet=False, fuzzy=True)
 
-    bart_scorer = BARTScorer(device="cuda" if torch.cuda.is_available(
-    ) else "cpu", checkpoint='facebook/bart-large-cnn')
+    bart_scorer = BARTScorer(device=device, checkpoint='facebook/bart-large-cnn')
     bart_scorer.load(path='data/bartScorer/bart.pth')
 
     # Calculate scores
