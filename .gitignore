@@ -189,3 +189,6 @@ cython_debug/
 
 # Don't include trained models
 data/*
+
+# Don't include results
+results/*
