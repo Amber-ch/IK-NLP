@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import nltk
+from tqdm import tqdm
 import re
 import torch
 import gdown  # used to download Scorer model
@@ -29,8 +30,8 @@ def run(args):
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
     # TEMPORARY: Only keep first 3 rows, for easy testing
-    # full_test_set = full_test_set.head(3)
-    #
+    full_test_set = full_test_set.head(10)
+    
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
 
@@ -103,6 +104,7 @@ def evaluateModel(model_name, input, target_explanations, target_labels, args):
     eval_type = args.eval_type
 
     # Generate predictions
+    print("Generating predictions for model " + model_name + "...")
     generated_predictions = generatePredictions(model, tokenizer, input, device)
     # Split predictions in labels and explanations, depending on what the model produced
     generated_labels, generated_explanations = splitPredictions(
@@ -149,7 +151,7 @@ def evaluateLabels(output, target):
 def generatePredictions(model, tokenizer, input, device):
     # Generate predictions
     predictions = []
-    for i in range(len(input)):
+    for i in tqdm(range(len(input))):
         input[i] = tokenizer(
             input[i], truncation=True, return_tensors="pt").to(device)
         output = model.generate(
@@ -178,6 +180,7 @@ def neuralEvaluationExplanations(model_name, predictions, target, device):
     # Calculate scores
     results = bart_scorer.multi_ref_score(
         predictions, target, agg="max", batch_size=4)
+
     # Apply np.exp() to column, so that the scores are between 0 and 1
     results = np.exp(results)
     # Construct dataframe with results and predictions
