@@ -1,3 +1,5 @@
+"""Main program for carrying out training (fine-tuning), prediction and model evaluation."""
+
 import argparse
 
 from models.flan_T5_base import train, predict, evaluate
@@ -11,7 +13,7 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers(help='commands', title="commands", dest="command")
 
-    # A train command
+    # Train command
     train_parser = subparsers.add_parser(
         'train', help='Fine-tune the base-model')
     train_parser.add_argument(
@@ -65,9 +67,14 @@ if __name__ == '__main__':
         type=int,
         help="The type of model being trained. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
+    train_parser.add_argument(
+        "--subset_size",
+        default=1,
+        type=float,
+        help="The percentage (from 0 to 1) of the dataset that is used during training. Defaults to 1"
+    )
 
-
-    # A predict command
+    # Predict command
     predict_parser = subparsers.add_parser(
         'predict', help='Generate inference label and explanation')
     predict_parser.add_argument(
@@ -98,8 +105,7 @@ if __name__ == '__main__':
         help="The type of model used for inference. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
 
-
-    # An evaluate command
+    # Evaluate command
     evaluate_parser = subparsers.add_parser(
         'evaluate', help='Evaluate')
     
@@ -114,7 +120,6 @@ if __name__ == '__main__':
         action="store_true",
         help="Inference on a GPU device."
     )
-
 
 
     args = parser.parse_args()
