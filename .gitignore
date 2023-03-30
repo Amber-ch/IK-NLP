@@ -189,6 +189,8 @@ cython_debug/
 
 # Don't include trained models
 data/*
+
+# Vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -201,3 +203,6 @@ data/*
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Don't include results
+results/*
