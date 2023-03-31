@@ -11,7 +11,7 @@ from datasets import load_metric
 from transformers import AutoTokenizer
 from transformers import AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 
-from models.utils import *
+from src.utils import *
 
 
 # Settings
@@ -39,7 +39,7 @@ class TrainModel:
         self.subset_size = param_args.subset_size
         self.device = select_device(param_args.gpu)
         self.tokenizer = AutoTokenizer.from_pretrained(self.base_model)
-        self._setup_dataset()
+        self._setup_dataset('esnli', param_args.custom_dataset)
         self._preprocess_data(task=param_args.task)
 
         # Load punkt tokenizer
@@ -84,19 +84,18 @@ class TrainModel:
             compute_metrics=self._compute_metrics
         )
 
-    def _setup_dataset(self, name='esnli', custom=False):
+    def _setup_dataset(self, name='esnli', custom=None):
         """Set up the dataset
 
         Args:
             name (str, optional): Name of the Hugging Face model. Defaults to 'esnli'.
-            custom (bool, optional): Indicate whether the model is imported locally or loaded from the Hugging Face Hub. Defaults to False.
+            custom (str, optional): Name of the locally cached model. Defaults to None.
         """
 
         seed = None
 
         if custom:
-            dataset = datasets.load_dataset(
-                '../loading_script.py', split='train')
+            dataset = datasets.load_from_disk(f'{DATASET_DIR}/{custom}')
         else:
             dataset = datasets.load_dataset(name)
 

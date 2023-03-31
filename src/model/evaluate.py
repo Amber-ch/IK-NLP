@@ -1,16 +1,14 @@
 import os
-import numpy as np
-import nltk
-from tqdm import tqdm
-import re
-import torch
 import gdown  # used to download Scorer model
+
+import numpy as np
 import pandas as pd
-from models.flan_T5_base.bart_score import BARTScorer
+
+from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from datasets import load_dataset, load_metric
-
-from models.utils import *
+from src.model.bart_score import BARTScorer
+from src.utils import *
 
 def run(args):
     eval_type = args.eval_type

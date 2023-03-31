@@ -2,9 +2,11 @@
 import torch
 import torch.nn as nn
 import traceback
+
+import numpy as np
+
 from transformers import BartTokenizer, BartForConditionalGeneration
 from typing import List
-import numpy as np
 
 
 class BARTScorer:
