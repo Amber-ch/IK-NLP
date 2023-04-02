@@ -4,7 +4,7 @@ Contains all code and data used in the project
 
 ## Overview
 
-The fine-tuning, prediction and evaluation tasks can all be carried out by running the `nli.py` together with the respective arguments arguments.
+The fine-tuning, prediction and evaluation tasks can all be carried out by running the `nli.py` together with the respective arguments.
 
 The general task is to predict an inference label in the form of `entailment`, `neutral` or `contradiction`, given a premise and a hypothesis.
 
