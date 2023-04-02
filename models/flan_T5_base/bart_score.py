@@ -1,4 +1,8 @@
-# %%
+"""
+Implementation of BART scorer
+
+This code is from: https://github.com/neulab/BARTScore
+"""
 import torch
 import torch.nn as nn
 import traceback
