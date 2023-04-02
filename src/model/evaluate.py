@@ -116,7 +116,7 @@ def clean_df(df, args):
         model_suffix = "-custom"
 
     # Remove duplicate columns
-    df = df.loc[:,~df.columns.duplicated
+    df = df.loc[:,~df.columns.duplicated]
                 
     eval = ["rouge_1", "rouge_2", "rouge_L"]
 
