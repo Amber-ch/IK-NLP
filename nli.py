@@ -2,7 +2,7 @@
 
 import argparse
 
-from models.flan_T5_base import train, predict, evaluate
+from src.model import train, predict, evaluate, preprocess
 
 
 if __name__ == '__main__':
@@ -11,6 +11,7 @@ if __name__ == '__main__':
         description="Welcome to the Natural Language Inference program."
     )
 
+    # the 4 subparses are: train, predict, evaluate, preprocess
     subparsers = parser.add_subparsers(help='commands', title="commands", dest="command")
 
     # Train command
@@ -73,6 +74,11 @@ if __name__ == '__main__':
         type=float,
         help="The percentage (from 0 to 1) of the dataset that is used during training. Defaults to 1"
     )
+    train_parser.add_argument(
+        "--custom_dataset",
+        type=str,
+        help="Name of the custom dataset. Note: It is loaded with load_from_disk() method, so the dataset should be in the PyArrow format"
+    )
 
     # Predict command
     predict_parser = subparsers.add_parser(
@@ -87,7 +93,7 @@ if __name__ == '__main__':
         "--hypothesis",
         nargs="*",
         required=True,
-        help="The hypothesis string"
+        help="The hypothesis string."
     )
     predict_parser.add_argument(
         "--label",
@@ -115,7 +121,6 @@ if __name__ == '__main__':
     # Evaluate command
     evaluate_parser = subparsers.add_parser(
         'evaluate', help='Evaluate')
-    
     evaluate_parser.add_argument(
         '--model_type',
         default="standard",
@@ -135,6 +140,21 @@ if __name__ == '__main__':
         help="Inference on a GPU device."
     )
 
+    # Preprocess command
+    preprocess_parser = subparsers.add_parser(
+        'preprocess', help='Preprocess')
+    preprocess_parser.add_argument(
+        "--dataset_name",
+        default="esnli_reduced",
+        type=str,
+        help="The name of the dataset to be saved after preprocessing. Defaults to 'esnli_reduced'"
+    )
+    preprocess_parser.add_argument(
+        "--distance_cutoff",
+        default=13,
+        type=int,
+        help="The cutoff value for computing the edit distance between the templates, such that all matched examples will be removed. Defaults to 13"
+    )
 
     args = parser.parse_args()
     if args.command == 'train':
@@ -143,3 +163,5 @@ if __name__ == '__main__':
         predict.run(args)
     if args.command == 'evaluate':
         evaluate.run(args)
+    if args.command == 'preprocess':
+        preprocess.run(args)

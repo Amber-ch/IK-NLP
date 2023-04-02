@@ -10,3 +10,4 @@ tensorboardX
 rouge-score==0.1.2
 gdown
 tqdm
+python-Levenshtein
