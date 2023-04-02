@@ -11,7 +11,7 @@ if __name__ == '__main__':
         description="Welcome to the Natural Language Inference program."
     )
 
-    # the 4 subparses are: train, predict, evaluate, preprocess
+    # The 4 subparses are: train, predict, evaluate, preprocess
     subparsers = parser.add_subparsers(help='commands', title="commands", dest="command")
 
     # Train command
@@ -110,7 +110,6 @@ if __name__ == '__main__':
         type=int,
         help="The type of model used for inference. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
-
     predict_parser.add_argument(
         "--model_type",
         default="standard",
@@ -156,6 +155,7 @@ if __name__ == '__main__':
         help="The cutoff value for computing the edit distance between the templates, such that all matched examples will be removed. Defaults to 13"
     )
 
+    # Run the appropriate sub-program with arguments
     args = parser.parse_args()
     if args.command == 'train':
         train.run(args)
