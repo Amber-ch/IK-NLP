@@ -105,9 +105,23 @@ if __name__ == '__main__':
         help="The type of model used for inference. 0: (premise, hypothesis) -> label, 1: (premise, hypothesis, label) -> explanation), 2: (premise, hypothesis) -> (label, explanation). Defaults to 2"
     )
 
+    predict_parser.add_argument(
+        "--model_type",
+        default="standard",
+        type=str,
+        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching"
+    )
+
     # Evaluate command
     evaluate_parser = subparsers.add_parser(
         'evaluate', help='Evaluate')
+    
+    evaluate_parser.add_argument(
+        '--model_type',
+        default="standard",
+        type=str,
+        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching"
+    )
     
     evaluate_parser.add_argument(
         "--eval_type",

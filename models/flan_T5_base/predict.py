@@ -20,11 +20,20 @@ def run(args):
 
     # Load model
     if args.task == 0:
-        model_name = 'rug-nlp-nli/flan-base-nli-label'
+        if args.model_type == "standard":
+            model_name = 'rug-nlp-nli/flan-base-nli-label'
+        else:
+            model_name = 'rug-nlp-nli/flan-base-nli-label-custom'
     elif args.task == 1:
-        model_name = 'rug-nlp-nli/flan-base-nli-explanation'
+        if args.model_type == "standard":
+            model_name = 'rug-nlp-nli/flan-base-nli-explanation'
+        else:
+            model_name = 'rug-nlp-nli/flan-base-nli-explanation-custom'
     elif args.task == 2:
-        model_name = 'rug-nlp-nli/flan-base-nli-label-explanation'
+        if args.model_type == "standard":
+            model_name = 'rug-nlp-nli/flan-base-nli-label-explanation'
+        else:
+            model_name = 'rug-nlp-nli/flan-base-nli-label-explanation-custom'
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
