@@ -248,3 +248,4 @@ def run(args):
     model.print_config(args)
     model.train()
     model.save(model_name)
+    
