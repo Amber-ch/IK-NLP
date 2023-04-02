@@ -89,8 +89,8 @@ python3 nli.py predict --premise "The dog's barking woke up the cat" --hypothesi
 ## Evaluation
 Optional argument | Definition | Default value
 |---|---|---|
-| __--model_type MODEL__ | Which model shall be evaluated (standard or custom). | standard
-| __--eval_type EVAL_TYPE__ | The type of model evaluation. | both
+| --model_type MODEL__ | Which model shall be evaluated (standard or custom). | standard
+| --eval_type EVAL_TYPE__ | The type of model evaluation. | both
 | --gpu | Run inference on GPU. | True
 
 ```bash
