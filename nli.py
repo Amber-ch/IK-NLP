@@ -93,7 +93,7 @@ if __name__ == '__main__':
         "--hypothesis",
         nargs="*",
         required=True,
-        help="The hypothesis string"
+        help="The hypothesis string."
     )
     predict_parser.add_argument(
         "--label",
@@ -133,13 +133,13 @@ if __name__ == '__main__':
         "--dataset_name",
         default="esnli_reduced",
         type=str,
-        help="The name of the preprocessed e-SNLI dataset."
+        help="The name of the dataset to be saved after preprocessing. Defaults to 'esnli_reduced'"
     )
     preprocess_parser.add_argument(
         "--distance_cutoff",
         default=13,
         type=int,
-        help="The cutoff value for computing the edit distance between the templates, such that all matched examples will be removed."
+        help="The cutoff value for computing the edit distance between the templates, such that all matched examples will be removed. Defaults to 13"
     )
 
     args = parser.parse_args()

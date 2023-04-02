@@ -12,6 +12,6 @@ module load OpenSSL/1.1
 cd  /home4/$USER/IK-NLP
 source /home4/$USER/IK-NLP/ik-nlp/bin/activate
 
-python nli.py train --gpu --num_train_epochs 3 --logging_steps 100 --save_steps 100000 --eval_steps 400 --batch_size 32 --custom_dataset "esnli_reduced" --task 2
+python nli.py train --gpu --logging_steps 100 --save_steps 100000 --eval_steps 400 --custom_dataset "esnli_reduced" --task 1
 
 deactivate

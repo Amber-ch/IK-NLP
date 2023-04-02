@@ -112,7 +112,7 @@ def template_matching(premises, hypotheses, labels, explanations, cutoff=10):
             'neutral': { i: [] for i in _neutral_templates('', '').keys() },
             'entailment': { i: [] for i in _entailment_templates('', '').keys() }
         }
-
+        
         for idx, (premise, hypothesis, label, sentence) in enumerate(zip(premises, hypotheses, labels, explanations)):
             # first check general
             is_counted = False
