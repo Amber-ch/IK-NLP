@@ -3,11 +3,11 @@ import numpy as np
 from tqdm import tqdm
 import gdown  # used to download Scorer model
 import pandas as pd
-from models.flan_T5_base.bart_score import BARTScorer
+from src.model.bart_score import BARTScorer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from datasets import load_dataset, load_metric
 
-from models.utils import *
+from src.utils import *
 
 def run(args):
     '''Run evaluation on the test set. 
