@@ -14,13 +14,14 @@ from models.utils import *
 
 def run(args):
     eval_type = args.eval_type
-    model_type = args.model_type
+
     model_suffix = ""
-    if model_type == "custom":
+    if args.model_type == "custom":
         model_suffix = "-custom"
+
     # Make sure a results folder exists
-    if not os.path.exists("results"):
-        os.makedirs("results")
+    if not os.path.exists(f"results{model_suffix}"):
+        os.makedirs(f"results{model_suffix}")
 
     # Load dataset
     dataset = load_dataset("esnli")
@@ -82,7 +83,7 @@ def run(args):
     # Order in increasing order of 'rug-nlp-nli/flan-base-nli-label-explanation_neural_score', so that the worst results are at the top
     if eval_type in ['neural', 'both']:
         results = results.sort_values(
-            by=f'rug-nlp-nli/flan-base-nli-label-explanation_neural_score{model_suffix}', ascending=True)
+            by=f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_neural_score', ascending=True)
 
     # Save the results to a .csv file
     results.to_csv(f'results/allResults{model_suffix}.csv', index=False)
@@ -97,6 +98,34 @@ def run(args):
 
     print("Evaluation done!")
 
+def clean_df(df, args):
+    model_suffix = ""
+    if args.model_type == "custom":
+        model_suffix = "-custom"
+
+    # Remove duplicate columns
+    df = df.loc[:,~df.columns.duplicated()]
+
+    # Remove exploded columns
+    drop_cols = []
+    for i in range(1,4):
+        for metric in eval:
+            drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_{metric}_{i}")
+            drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_{metric}_{i}")
+
+    # Remove list of explanations column
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_labels")
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_labels")
+
+    # Remove duplicate prediction column
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_prediction.1")
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_prediction.1")
+
+
+    df = df.drop(columns = drop_cols)
+
+    return df
+    
 
 def evaluateModel(model_name, input, target_explanations, target_labels, args):
     # select appropriate device
@@ -112,7 +141,7 @@ def evaluateModel(model_name, input, target_explanations, target_labels, args):
     generated_predictions = generatePredictions(model, tokenizer, input, device)
     # Split predictions in labels and explanations, depending on what the model produced
     generated_labels, generated_explanations = splitPredictions(
-        model_name, generated_predictions)
+        model_name, generated_predictions, args)
 
     # create empty dataframe
     results = pd.DataFrame()
@@ -235,11 +264,6 @@ def textEvaluationExplanations(model_name, predictions, target):
 
     rouge_scores_explode.to_csv(f'results/{model_name[12:]}_rouge_scores.csv')
 
-    # for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
-    #     print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))
-    #     print('stdev ', metric, ': ', np.std(rouge_scores_explode[metric]))
-    #     print()
-
     return rouge_scores_explode
 
 
@@ -247,91 +271,99 @@ def generateSummary(results, args):
     summary = ""
     eval_type = args.eval_type
 
+    model_suffix = ""
+    if args.model_type == "custom":
+        model_suffix = "-custom"
+
     if eval_type in ['neural', 'both']:
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_neural_score
-        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].mean(), 2)
-        std = round(results['rug-nlp-nli/flan-base-nli-explanation_neural_score'].std(), 2)
-        summary += "Average explanation neural score of nli-explanation: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_neural_score'].mean(), 2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_neural_score'].std(), 2)
+        summary += f"Average explanation neural score of nli-explanation{model_suffix}: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-label_neural_score
-        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].mean(), 2)
-        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_neural_score'].std(), 2)
-        summary += "Average explanation neural score of nli-label-explanation: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_neural_score'].mean(), 2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_neural_score'].std(), 2)
+        summary += f"Average explanation neural score of nli-label-explanation{model_suffix}: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
     if eval_type in ['text', 'both']:
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_1_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].mean(), 2)
-        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_1_max'].std(), 2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_1_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max'].mean(), 2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max'].std(), 2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_2_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].mean(), 2)
-        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_2_max'].std(), 2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_2_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_2_max'].mean(), 2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_2_max'].std(), 2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_2_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_L_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].mean(),2)
-        std = round(results['rug-nlp-nli/flan-base-nli-explanation_rouge_L_max'].std(),2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-explanation_rouge_L_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_L_max'].mean(),2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_L_max'].std(),2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_L_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_1_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].mean(),2)
-        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max'].std(),2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_1_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_1_max'].mean(),2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_1_max'].std(),2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_1_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_2_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].mean(),2)
-        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max'].std(),2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_2_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_2_max'].mean(),2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_2_max'].std(),2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_2_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_L_max
-        mean = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].mean(),2)
-        std = round(results['rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max'].std(),2)
-        summary += "Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation_rouge_L_max: " + \
+        mean = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_L_max'].mean(),2)
+        std = round(results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_L_max'].std(),2)
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_rouge_L_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
     # Find percentage of correct labels of nli-label
-    correct_labels = results['rug-nlp-nli/flan-base-nli-label_correct_label?'].sum()
+    correct_labels = results[f'rug-nlp-nli/flan-base-nli-label{model_suffix}_correct_label?'].sum()
     total_labels = len(
-        results['rug-nlp-nli/flan-base-nli-label_correct_label?'])
+        results[f'rug-nlp-nli/flan-base-nli-label{model_suffix}_correct_label?'])
     percentage = str(round(correct_labels/total_labels, 2))
-    summary += "Percentage of correct labels of nli-label: " + percentage + "\n"
+    summary += f"Percentage of correct labels of nli-label{model_suffix}: " + percentage + "\n"
 
     # Find percentage of correct labels of nli-label-explanation
-    correct_labels = results['rug-nlp-nli/flan-base-nli-label-explanation_correct_label?'].sum()
+    correct_labels = results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_correct_label?'].sum()
     total_labels = len(
-        results['rug-nlp-nli/flan-base-nli-label-explanation_correct_label?'])
+        results[f'rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_correct_label?'])
     percentage = str(round(correct_labels/total_labels, 2))
-    summary += "Percentage of correct labels of nli-label-explanation: " + percentage + "\n"
+    summary += f"Percentage of correct labels of nli-label-explanation{model_suffix}: " + percentage + "\n"
 
     return summary
 
 
-def splitPredictions(model_name, predictions):
+def splitPredictions(model_name, predictions, args):
+    model_suffix = ""
+    if args.model_type == "custom":
+        model_suffix = "-custom"
+
     # Split in labels and explanations
     # Create empty lists
     generated_labels = [None] * len(predictions)
     generated_explanations = [None] * len(predictions)
-    if model_name == "rug-nlp-nli/flan-base-nli-label-explanation":
+    if model_name == f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}":
         # split based on ": " which follows the label, if it exists
         for i in range(len(predictions)):
             split_predictions = predictions[i].split(": ")
             generated_labels[i] = split_predictions[0]
             generated_explanations[i] = split_predictions[1]
 
-    if model_name == "rug-nlp-nli/flan-base-nli-label":
+    if model_name == f"rug-nlp-nli/flan-base-nli-label{model_suffix}":
         # output is only the label
         generated_labels = predictions
         generated_explanations = None
 
-    if model_name == "rug-nlp-nli/flan-base-nli-explanation":
+    if model_name == f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}":
         # output is only the explanation
         generated_labels = None
         generated_explanations = predictions
