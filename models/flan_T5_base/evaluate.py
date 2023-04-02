@@ -14,6 +14,10 @@ from models.utils import *
 
 def run(args):
     eval_type = args.eval_type
+    model_type = args.model_type
+    model_suffix = ""
+    if model_type == "custom":
+        model_suffix = "-custom"
     # Make sure a results folder exists
     if not os.path.exists("results"):
         os.makedirs("results")
@@ -58,17 +62,17 @@ def run(args):
     test_target_labels = full_test_set['label'].tolist()  # Convert to list
 
     # Evaluate models
-    print("Evaluating model: rug-nlp-nli/flan-base-nli-explanation")
+    print(f"Evaluating model: rug-nlp-nli/flan-base-nli-explanation{model_suffix}")
     model_results_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-explanation", input_nli_explanation, test_target_explanations, test_target_labels, args)
+        f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}", input_nli_explanation, test_target_explanations, test_target_labels, args)
 
-    print("Evaluating model: rug-nlp-nli/flan-base-nli-label")
+    print(f"Evaluating model: rug-nlp-nli/flan-base-nli-label{model_suffix}")
     model_results_label = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-label", input_nli_label, test_target_explanations, test_target_labels, args)
+        f"rug-nlp-nli/flan-base-nli-label{model_suffix}", input_nli_label, test_target_explanations, test_target_labels, args)
 
-    print("Evaluating model: rug-nlp-nli/flan-base-nli-label-explanation")
+    print(f"Evaluating model: rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}")
     model_results_label_explanation = evaluateModel(
-        "rug-nlp-nli/flan-base-nli-label-explanation", input_nli_label_explanation, test_target_explanations, test_target_labels, args)
+        f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}", input_nli_label_explanation, test_target_explanations, test_target_labels, args)
 
     print("Exporting results to .csv file...")
     # Make dataframe with the input and the results
@@ -78,17 +82,17 @@ def run(args):
     # Order in increasing order of 'rug-nlp-nli/flan-base-nli-label-explanation_neural_score', so that the worst results are at the top
     if eval_type in ['neural', 'both']:
         results = results.sort_values(
-            by='rug-nlp-nli/flan-base-nli-label-explanation_neural_score', ascending=True)
+            by=f'rug-nlp-nli/flan-base-nli-label-explanation_neural_score{model_suffix}', ascending=True)
 
     # Save the results to a .csv file
-    results.to_csv('results/allResults.csv', index=False)
+    results.to_csv(f'results/allResults{model_suffix}.csv', index=False)
 
     # Generate summary of results
     print("Generating summary of results...")
     summary = generateSummary(results, args)
 
     # Save summary to .txt file
-    with open('results/summary.txt', 'w') as f:
+    with open(f'results/summary{model_suffix}.txt', 'w') as f:
         f.write(summary)
 
     print("Evaluation done!")
