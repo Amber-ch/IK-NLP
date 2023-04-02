@@ -98,6 +98,34 @@ def run(args):
 
     print("Evaluation done!")
 
+def clean_df(df, args):
+    model_suffix = ""
+    if args.model_type == "custom":
+        model_suffix = "-custom"
+
+    # Remove duplicate columns
+    df = df.loc[:,~df.columns.duplicated()]
+
+    # Remove exploded columns
+    drop_cols = []
+    for i in range(1,4):
+        for metric in eval:
+            drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_{metric}_{i}")
+            drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_{metric}_{i}")
+
+    # Remove list of explanations column
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_labels")
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_labels")
+
+    # Remove duplicate prediction column
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-explanation{model_suffix}_prediction.1")
+    drop_cols.append(f"rug-nlp-nli/flan-base-nli-label-explanation{model_suffix}_prediction.1")
+
+
+    df = df.drop(columns = drop_cols)
+
+    return df
+    
 
 def evaluateModel(model_name, input, target_explanations, target_labels, args):
     # select appropriate device
@@ -236,11 +264,6 @@ def textEvaluationExplanations(model_name, predictions, target):
 
     rouge_scores_explode.to_csv(f'results/{model_name[12:]}_rouge_scores.csv')
 
-    # for metric in ['rouge_1_max', 'rouge_2_max', 'rouge_L_max']:
-    #     print('mean ' , metric, ': ', np.mean(rouge_scores_explode[metric]))
-    #     print('stdev ', metric, ': ', np.std(rouge_scores_explode[metric]))
-    #     print()
-
     return rouge_scores_explode
 
 
@@ -269,7 +292,7 @@ def generateSummary(results, args):
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_1_max
         mean = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max'].mean(), 2)
         std = round(results[f'rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max'].std(), 2)
-        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max{model}: " + \
+        summary += f"Average explanation text score of rug-nlp-nli/flan-base-nli-explanation{model_suffix}_rouge_1_max: " + \
             str(mean) + " (std: " + str(std) + ")\n"
 
         # Find average and standard deviation of column rug-nlp-nli/flan-base-nli-explanation_rouge_2_max
