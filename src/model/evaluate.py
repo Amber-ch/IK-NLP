@@ -31,13 +31,15 @@ def run(args):
     # Convert to Pandas Dataframe for easy manipulation
     full_test_set = pd.DataFrame(dataset["test"], columns=[
                                  'premise', 'hypothesis', 'label', 'explanation_1', 'explanation_2', 'explanation_3'])
+    
+    full_test_set['index'] = full_test_set.index
 
     # Convert labels to string based on the mapping.
     full_test_set['label'] = full_test_set['label'].map(
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
     # For testing: Only keep first 10 rows, for easy testing
-    full_test_set = full_test_set.head(5)
+    #full_test_set = full_test_set.head(5)
     
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)
