@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=12:00:00
 #SBATCH --gpus-per-node=a100:1
 #SBATCH --partition=gpu
-#SBATCH --job-name=NLI-training
+#SBATCH --job-name=NLI-training-task-2
 #SBATCH --mem=64G
 
 module purge

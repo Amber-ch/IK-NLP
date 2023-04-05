@@ -38,8 +38,8 @@ def run(args):
     full_test_set['label'] = full_test_set['label'].map(
         {0: 'entailment', 1: 'neutral', 2: 'contradiction'})
 
-    # For testing: Only keep first 10 rows, for easy testing
-    #full_test_set = full_test_set.head(5)
+    # Pick full dataset or subset.
+    full_test_set = full_test_set.head(int(len(full_test_set) * args.subset_size))
     
 
     # Format input string according to model type. One with label (for the "nli-explanation" model, and one without label (for the "label" & "label-explanation" model)

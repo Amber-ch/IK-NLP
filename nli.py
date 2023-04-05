@@ -126,17 +126,22 @@ if __name__ == '__main__':
         type=str,
         help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching"
     )
-    
     evaluate_parser.add_argument(
         "--eval_type",
         default="both",
-        type=str,
+        choices=['neural', 'text', 'both'],
         help="'neural' or 'text' evaluation or 'both'. Defaults to 'both'"
     )
     evaluate_parser.add_argument(
         "--gpu",
         action="store_true",
         help="Inference on a GPU device."
+    )
+    evaluate_parser.add_argument(
+        "--subset_size",
+        default=1,
+        type=float,
+        help="The percentage (from 0 to 1) of the dataset that is used during evaluation. Defaults to 1"
     )
 
     # Preprocess command
