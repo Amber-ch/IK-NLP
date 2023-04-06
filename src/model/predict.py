@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 from transformers import AutoModelForSeq2SeqLM
 
 
-DATASET_DIR = 'data'
+MODEL_DIR = 'data'
 
 
 def run(args):
@@ -19,7 +19,9 @@ def run(args):
         nltk.download('punkt')
 
     # Load model
-    if args.task == 0:
+    if args.custom_model:
+        model_name = f'{MODEL_DIR}/{args.custom_model}'
+    elif args.task == 0:
         if args.model_type == "standard":
             model_name = 'rug-nlp-nli/flan-base-nli-label'
         else:

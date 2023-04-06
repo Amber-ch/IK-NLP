@@ -100,11 +100,6 @@ if __name__ == '__main__':
         choices=['entailment', 'neutral', 'contradiction'],
     )
     predict_parser.add_argument(
-        "--model_dir",
-        default="flan-t5-base-nli-explanation-generation",
-        help="Name of the model directory. Defaults to \"flan-t5-base-nli-explanation-generation\""
-    )
-    predict_parser.add_argument(
         "--task",
         default=2,
         type=int,
@@ -114,7 +109,12 @@ if __name__ == '__main__':
         "--model_type",
         default="standard",
         type=str,
-        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching"
+        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching. Defaults to 'standard'"
+    )
+    predict_parser.add_argument(
+        "--custom_model",
+        type=str,
+        help="Name of the custom model. Note: It should be located in the 'data' directory."
     )
 
     # Evaluate command
@@ -123,14 +123,14 @@ if __name__ == '__main__':
     evaluate_parser.add_argument(
         '--model_type',
         default="standard",
-        type=str,
-        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching"
+        choices=['standard', 'custom'],
+        help="'standard' for model trained on e-SNLI dataset as provided, 'custom' for dataset cleaned by template matching. Defaults to 'standard'"
     )
     evaluate_parser.add_argument(
         "--eval_type",
         default="both",
         choices=['neural', 'text', 'both'],
-        help="'neural' or 'text' evaluation or 'both'. Defaults to 'both'"
+        help="'neural' or 'text' evaluation or 'both'. Defaults to 'both'. Defaults to 'both'"
     )
     evaluate_parser.add_argument(
         "--gpu",
@@ -142,6 +142,21 @@ if __name__ == '__main__':
         default=1,
         type=float,
         help="The percentage (from 0 to 1) of the dataset that is used during evaluation. Defaults to 1"
+    )
+    evaluate_parser.add_argument(
+        "--custom_label_model",
+        type=str,
+        help="Name of the custom label model. Note: It should be located in the 'data' directory."
+    )
+    evaluate_parser.add_argument(
+        "--custom_explanation_model",
+        type=str,
+        help="Name of the custom explanation model. Note: It should be located in the 'data' directory."
+    )
+    evaluate_parser.add_argument(
+        "--custom_label_explanation_model",
+        type=str,
+        help="Name of the custom label and explanation model. Note: It should be located in the 'data' directory."
     )
 
     # Preprocess command
