@@ -181,5 +181,5 @@ This project was created as part of the [Natural Language Processing](https://si
 
 - Amber
 - Leonidas
-- Fillipos
+- Filippos
 - Lorenzo
