@@ -177,7 +177,7 @@ __Note__: It is recommended to run the jupyter server from within the notebooks 
 
 ## Contribution Note
 
-This project was created as part of the Natural Language Processing course offered at the University of Groningen. The codebase and final report have been created by:
+This project was created as part of the [Natural Language Processing](https://sites.google.com/rug.nl/ik-nlp-2023/projects-description/5-evaluating-explanations-in-natural-language-inference) course offered at the University of Groningen. The codebase and final report have been created by:
 
 - Amber
 - Leonidas
