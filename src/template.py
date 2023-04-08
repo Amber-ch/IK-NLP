@@ -176,8 +176,8 @@ def template_matching(premises, hypotheses, labels, explanations, cutoff=13):
         # first check general
         is_counted = False
         for loc, pattern in _general_templates(premise, hypothesis).items():
-            similarity = Levenshtein.distance(sentence.lower(), pattern)
-            if similarity < cutoff:
+            difference = Levenshtein.distance(sentence.lower(), pattern)
+            if difference < cutoff:
                 bins['general'][loc] += 1
                 indices['general'][loc].append(idx)
                 if not is_counted:
@@ -188,8 +188,8 @@ def template_matching(premises, hypotheses, labels, explanations, cutoff=13):
         is_counted = False
         if label == 'contradiction':
             for loc, pattern in _contradiction_templates(premise, hypothesis).items():
-                similarity = Levenshtein.distance(sentence.lower(), pattern)
-                if similarity < cutoff:
+                difference = Levenshtein.distance(sentence.lower(), pattern)
+                if difference < cutoff:
                     bins['contradiction'][loc] += 1
                     indices['contradiction'][loc].append(idx)
                     if not is_counted:
@@ -197,8 +197,8 @@ def template_matching(premises, hypotheses, labels, explanations, cutoff=13):
                         is_counted = True
         elif label == 'neutral':
             for loc, pattern in _neutral_templates(premise, hypothesis).items():
-                similarity = Levenshtein.distance(sentence.lower(), pattern)
-                if similarity < cutoff:
+                difference = Levenshtein.distance(sentence.lower(), pattern)
+                if difference < cutoff:
                     bins['neutral'][loc] += 1
                     indices['neutral'][loc].append(idx)
                     if not is_counted:
@@ -206,8 +206,8 @@ def template_matching(premises, hypotheses, labels, explanations, cutoff=13):
                         is_counted = True
         elif label == 'entailment':
             for loc, pattern in _entailment_templates(premise, hypothesis).items():
-                similarity = Levenshtein.distance(sentence.lower(), pattern)
-                if similarity < cutoff:
+                difference = Levenshtein.distance(sentence.lower(), pattern)
+                if difference < cutoff:
                     bins['entailment'][loc] += 1
                     indices['entailment'][loc].append(idx)
                     if not is_counted:
