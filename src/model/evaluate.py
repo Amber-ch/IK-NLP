@@ -1,12 +1,13 @@
 import os
-import numpy as np
-from tqdm import tqdm
 import gdown  # used to download Scorer model
+
+import numpy as np
 import pandas as pd
-from src.model.bart_score import BARTScorer
+
+from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from datasets import load_dataset, load_metric
-
+from src.model.bart_score import BARTScorer
 from src.utils import *
 
 
@@ -14,7 +15,7 @@ MODEL_DIR = 'data'
 
 
 def clean_df(df, args):
-    '''Clean the dataframe by removing duplicate columns and columns that are not needed for the evaluation.
+    """Clean the dataframe by removing duplicate columns and columns that are not needed for the evaluation.
     
     Args: 
         df (pd.DataFrame): The dataframe to clean.
@@ -22,7 +23,7 @@ def clean_df(df, args):
         
     Returns:
         df (pd.DataFrame): The cleaned dataframe.
-    '''
+    """
 
     model_suffix = ""
     if args.model_type == "custom":
@@ -64,7 +65,7 @@ def clean_df(df, args):
 
 def evaluate_model(model_name, task, input, target_explanations, target_labels,
                    args):
-    '''Evaluate a model on the given input and target explanations and labels.
+    """Evaluate a model on the given input and target explanations and labels.
     
     Args: 
         model_name (str): The name of the model to evaluate.
@@ -75,7 +76,8 @@ def evaluate_model(model_name, task, input, target_explanations, target_labels,
         
     Returns:
         results (pd.DataFrame): All the results (neural, textual & label) of the evaluation of the model with the given name.
-    '''
+    """
+
     # select appropriate device
     device = select_device(args.gpu)
 
@@ -121,7 +123,7 @@ def evaluate_model(model_name, task, input, target_explanations, target_labels,
 
 
 def evaluate_labels(output, target):
-    '''Evaluate the labels of the model.
+    """Evaluate the labels of the model.
     
     Args: 
         output (list): The output labels of the model.
@@ -129,7 +131,8 @@ def evaluate_labels(output, target):
         
     Returns:
         label_results (pd.DataFrame): A dataframe with the results of the label evaluation (whether each label is correct & difference).
-    '''
+    """
+
     # Evaluates whether the model predicted the correct label. Returns a dataframe with the results.
     label_results = pd.DataFrame()
     # for each output, check if it is equal to the target
@@ -141,7 +144,7 @@ def evaluate_labels(output, target):
 
 
 def generate_predictions(model, tokenizer, input, device):
-    '''Generate predictions for the given input.
+    """Generate predictions for the given input.
     
     Args: 
         model (transformers.modeling_bart.BartForConditionalGeneration): The model to generate predictions with.
@@ -151,7 +154,8 @@ def generate_predictions(model, tokenizer, input, device):
         
     Returns:
         predictions (list): The predictions made by the model (list of strings).
-    '''
+    """
+
     # Generate predictions
     predictions = []
     for i in tqdm(range(len(input))):
@@ -169,7 +173,7 @@ def generate_predictions(model, tokenizer, input, device):
 
 
 def neural_evaluation_explanations(model_name, predictions, target, device):
-    '''Evaluate the explanations of the model using Bart Scorer.
+    """Evaluate the explanations of the model using Bart Scorer.
         
     Args:
         model_name (str): The name of the model to evaluate.
@@ -179,7 +183,7 @@ def neural_evaluation_explanations(model_name, predictions, target, device):
         
     Returns:
         results (pd.DataFrame): A dataframe with the results of the neural evaluation (based on BART score).
-    '''
+    """
 
     # Load BART scorer
     # Download scorer if it doesn't exist in bartScorer/bart.pth
@@ -214,7 +218,7 @@ def neural_evaluation_explanations(model_name, predictions, target, device):
 
 
 def text_evaluation_explanations(model_name, predictions, target):
-    '''Evaluate the explanations of the model using text-based metrics.
+    """Evaluate the explanations of the model using text-based metrics.
         
     Args:
         model_name (str): The name of the model to evaluate.
@@ -223,7 +227,7 @@ def text_evaluation_explanations(model_name, predictions, target):
         
     Returns:
         results (pd.DataFrame): A dataframe with the results of the text-based evaluation (based on ROUGE scores).
-    '''
+    """
 
     # Calculate scores
     scores_labels_predictions_df = compute_metrics(predictions, target)
@@ -278,7 +282,7 @@ def text_evaluation_explanations(model_name, predictions, target):
 
 
 def generate_summary(results, args):
-    '''Generate a summary of the results.
+    """Generate a summary of the results.
         
     Args:
         results (pd.DataFrame): A dataframe with the results of the evaluation. 
@@ -286,7 +290,7 @@ def generate_summary(results, args):
         
     Returns:
         summary (str): A summary of the results.
-    '''
+    """
 
     model_suffix = ""
     # If the model is a custom model, add the suffix "-custom" to the model name
@@ -426,16 +430,16 @@ def generate_summary(results, args):
 
 
 def split_predictions(task, predictions, args):
-    '''Split the predictions into labels and explanations
+    """Split the predictions into labels and explanations.
     
     Args:
-        task (int): Task. Used to determine what split is needed
-        predictions (list): list of predictions that need to be split
+        task (int): Task number, used to determine what split is needed.
+        predictions (list): List of predictions that need to be split.
         args (args): The arguments from argparse.
     
     Returns:
         list: list of labels and list of explanations. Either is None if the model does not output that.
-    '''
+    """
 
     # Split in labels and explanations
     # Create empty lists
@@ -462,15 +466,15 @@ def split_predictions(task, predictions, args):
 
 
 def compute_metrics(predictions, targets):
-    '''Compute the ROUGE scores for the predictions and targets
+    """Compute the ROUGE scores for the predictions and targets.
 
     Args:
-        predictions (list): list of generated predictions
-        targets (list): list of targets
+        predictions (list): List of generated predictions.
+        targets (list): List of targets.
     
     Returns:
-        scores_labels_predictions (pd.DataFrame): dataframe with the predictions, targets and the ROUGE scores
-    '''
+        scores_labels_predictions (pd.DataFrame): dataframe with the predictions, targets and the ROUGE scores.
+    """
 
     metric = load_metric("rouge")
 
@@ -506,11 +510,12 @@ def compute_metrics(predictions, targets):
 
 
 def run(args):
-    '''Run evaluation on the test set. 
+    """Run evaluation on the test set. 
     
     Args: 
         args (args): The arguments from argparse.
-    '''
+    """
+
     eval_type = args.eval_type
 
     model_suffix = ""

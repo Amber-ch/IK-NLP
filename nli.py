@@ -1,4 +1,11 @@
-"""Main program for carrying out training (fine-tuning), prediction and model evaluation."""
+"""Main program for carrying out different NLI related tasks.
+
+These tasks include:
+- preprocessing.
+- training (fine-tuning).
+- prediction.
+- model evaluation.
+"""
 
 import argparse
 

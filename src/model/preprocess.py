@@ -1,3 +1,8 @@
+"""Module that implements the e-SNLI dataset preprocessing.
+
+The dataset is preprocessed by removing uninformative explanations.
+"""
+
 import datasets
 
 import pandas as pd
@@ -11,6 +16,11 @@ DATASET_DIR = 'data'
 
 
 def run(args):
+    """Run preprocessing on the e-SNLI dataset.
+    
+    Args: 
+        args (args): The arguments from argparse.
+    """
 
     labels_dict = {
         0 : "entailment",

@@ -1,7 +1,19 @@
+"""Module for generating template matching distributions."""
+
 import Levenshtein
 
 
 def _general_templates(premise, hypothesis):
+    """Generate uninformative explanations based on general templates.
+
+    Args:
+        premise (str): The premise string.
+        hypothesis (str): The hypothesis string.
+
+    Returns:
+        dict: The uninformative explanations from the general templates.
+    """
+
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
@@ -18,6 +30,16 @@ def _general_templates(premise, hypothesis):
 
 
 def _contradiction_templates(premise, hypothesis):
+    """Generate uninformative explanations based on contradiction templates.
+
+    Args:
+        premise (str): The premise string.
+        hypothesis (str): The hypothesis string.
+
+    Returns:
+        dict: The uninformative explanations from the contradiction templates.
+    """
+
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
@@ -44,6 +66,16 @@ def _contradiction_templates(premise, hypothesis):
 
 
 def _neutral_templates(premise, hypothesis):
+    """Generate uninformative explanations based on neutral templates.
+
+    Args:
+        premise (str): The premise string.
+        hypothesis (str): The hypothesis string.
+
+    Returns:
+        dict: The uninformative explanations from the neutral templates.
+    """
+
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
@@ -63,6 +95,16 @@ def _neutral_templates(premise, hypothesis):
 
 
 def _entailment_templates(premise, hypothesis):
+    """Generate uninformative explanations based on entailment templates.
+
+    Args:
+        premise (str): The premise string.
+        hypothesis (str): The hypothesis string.
+
+    Returns:
+        dict: The uninformative explanations from the entailment templates.
+    """
+
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
@@ -88,7 +130,24 @@ def _entailment_templates(premise, hypothesis):
     return patterns
 
 
-def template_matching(premises, hypotheses, labels, explanations, cutoff=10):
+def template_matching(premises, hypotheses, labels, explanations, cutoff=13):
+    """Match explanations against all templates.
+     
+    Every premise and hypothesis pair that corresponds to an explanation
+    is substituted into all general, contradiction, neutral and entailment templates,
+    which are then used to determine whether the explanation is considered
+    uninformative or not, and counted towards the template matching distribution.
+
+    Args:
+        premises (List[str]): A list of premise strings.
+        hypotheses (List[str]): A list of hypothesis strings.
+        labels (List[str]): A list of label strings.
+        explanations (List[str]): A list of explanation strings.
+        cutoff (int, optional): Levenshtein distance. Defaults to 13.
+
+    Returns:
+        dict: A template counter dict, distribution dict and its respective indices dict.
+    """
 
     counter = {
         'general': 0,
