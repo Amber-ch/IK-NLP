@@ -1,3 +1,7 @@
 # Notebooks
 
-Contains notebook(s) with initial data exploration.
+Contains the following notebooks:
+
+- exploratory_data_analysis
+- template_matching_analysis
+- qualitative_evaluation

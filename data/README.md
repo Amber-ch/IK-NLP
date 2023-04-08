@@ -1,8 +1,3 @@
-# IK-NLP Project
-Contains all code and data used in the project
+# Data
 
-# How to run:
-TODO
-
-# To cite:
-TODO
+Any generated data used in preprocessing, training, prediction or evaluation will be stored here.

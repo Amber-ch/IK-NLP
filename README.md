@@ -1,4 +1,4 @@
-# IK-NLP Project -- Evaluating Explanations in Natural Language Inference
+# IK-NLP Project — Evaluating Explanations in Natural Language Inference
 
 This repository provides the source code for training and evaluating natural language inference (NLI) models, as well as running predictions on single inputs.
 
@@ -16,13 +16,15 @@ Task | Definition | Input prompt
 | 1 | Generating an explanation from the premise, hypothesis and inference label. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]. label: [LABEL]"
 | 2 | Jointly predicting the inference label and generating an explanation from the premise and hypothesis. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]."
 
-In the remaining sections there will be an in-depth explanation on how to properly fine-tune the base model, but to make testing and evaluation easily accessible, we published the two classes of models for the 3 sub-tasks on huggingface: The first class of models was trained on the full e-SNLI dataset, and the second class of models was trained on a subset of the e-SNLI dataset, where a certain percentage of uninformative examples were filtered out using various templates. The details of this are explained in the project report, but for transparency, a Levenshtein cutoff distance of 13 was considered for preprocessing the dataset.
+In the remaining sections there will be an in-depth explanation on how to properly fine-tune the base model, but to make testing and evaluation easily accessible, we published the two classes of models for the 3 sub-tasks on huggingface: The first class of models was trained on the full [e-SNLI](https://huggingface.co/datasets/esnli) dataset, and the second class of models was trained on a subset of the e-SNLI dataset, where a certain percentage of uninformative examples were filtered out using various templates. The details of this are explained in the project report, but for transparency, a Levenshtein cutoff distance of 13 was considered for preprocessing the dataset.
 
 Task | Model (full e-SNLI) | Model (subset e-SNLI)
 |---|---|---|
 | 0 | [rug-nlp-nli/flan-base-nli-label](https://huggingface.co/rug-nlp-nli/flan-base-nli-label) | [rug-nlp-nli/flan-base-nli-label-custom](https://huggingface.co/rug-nlp-nli/flan-base-nli-label-custom)
 | 1 | [rug-nlp-nli/flan-base-nli-explanation](https://huggingface.co/rug-nlp-nli/flan-base-nli-explanation) | [rug-nlp-nli/flan-base-nli-explanation-custom](https://huggingface.co/rug-nlp-nli/flan-base-nli-explanation-custom)
 | 2 | [rug-nlp-nli/flan-base-nli-label-explanation](https://huggingface.co/rug-nlp-nli/flan-base-nli-label-explanation) | [rug-nlp-nli/flan-base-nli-label-explanation-custom](https://huggingface.co/rug-nlp-nli/flan-base-nli-label-explanation-custom)
+
+The e-SNLI dataset, the base model, and unless otherwise specified, the 6 published NLI models are automatically retrieved from the huggingface repository when running any of the 4 programs.
 
 Training and inference was tested and confirmed to be working on the following PyTorch backends:
 
@@ -54,10 +56,16 @@ Optional argument | Definition | Default value
 | --dataset_name DATASET_NAME | The name of the dataset to be saved after preprocessing. | esnli_reduced
 | --distance_cutoff DISTANCE_CUTOFF | The cutoff value for the edit distance based pattern matching criterion. | 13
 
-The resulting dataset will then be stored in the `data` directory. For the sake of simplicity, we provide the preprocessed dataset with default values as `data/esnli_reduced`. An example of how the preprocessing program could be run with non-default values is as follows:
+The resulting dataset will then be stored in the `data` directory. An example of how the preprocessing program could be run with non-default values is as follows:
 
 ```bash
 python nli.py preprocess --dataset_name "preprocessed_dataset" --distance_cutoff 11
+```
+
+Since the resulting dataset contains a file that exceeds the GitHub file limit, the dataset will have to be preprocessed manually before training. This should not take longer than a minute, and can be done by simply running the default program:
+
+```bash
+python nli.py preprocess
 ```
 
 ## Training
@@ -127,13 +135,15 @@ Based on the evaluation class, the program generates the following output csv fi
 
 Both evaluations also come with a summary text file that reports the average score and standard deviation, as well as the percentage of correctly labeled predictions (for tasks 0 and 2). A final csv file is generated called `allResults.csv`, which is a concatenation of all results, and can be used for analysis.
 
+Since running a complete evaluation can take a long time, we provide the results in the `results` directory for the 6 published models.
+
 __Note__: There is a distinction between the 'custom' option in the `model_type` argument, which refers to the uninformative explanation filtered dataset, and 'custom' in specifying the `custom_model` argument, which refers to the name of the model that is locally stored on the computer.
 
 Optional argument | Definition | Default value
 |---|---|---|
 | --model_type {standard, custom} | The type of model that shall be evaluated. | standard
 | --eval_type {neural, text, both} | The type of model evaluation. | both
-| --gpu | Run inference on GPU. | True
+| --gpu | Run inference on GPU. | False
 | --subset_size SUBSET_SIZE | The percentage (from 0 to 1) of the dataset that is used during evaluation. | 1
 | --custom_label_model CUSTOM_LABEL_MODEL | Name of the locally stored label model. | -
 | --custom_explanation_model CUSTOM_EXPLANATION_MODEL | Name of the locally stored explanation model. | -
@@ -164,3 +174,12 @@ squeue --job [JOB_ID]
 In the `notebooks` directory there is a collection of Jupyter notebooks that are used for exploratory data analysis, template matching analysis and the model evaluations analysis.
 
 __Note__: It is recommended to run the jupyter server from within the notebooks folder as to correctly load the python modules and additional files.
+
+## Contribution Note
+
+This project was created as part of the Natural Language Processing course offered at the University of Groningen. The codebase and final report have been created by:
+
+- Amber
+- Leonidas
+- Fillipos
+- Lorenzo
