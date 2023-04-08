@@ -1,3 +1,7 @@
+"""BARTScore
+Taken from https://github.com/neulab/BARTScore/blob/main/bart_score.py
+"""
+
 import torch
 import torch.nn as nn
 import traceback

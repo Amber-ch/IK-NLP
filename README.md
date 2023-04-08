@@ -16,7 +16,7 @@ Task | Definition | Input prompt
 | 1 | Generating an explanation from the premise, hypothesis and inference label. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]. label: [LABEL]"
 | 2 | Jointly predicting the inference label and generating an explanation from the premise and hypothesis. | "premise: [PREMISE]. hypothesis: [HYPOTHESIS]."
 
-In the remaining sections there will be an in-depth explanation on how to properly fine-tune the base model, but to make testing and evaluation easily accessible, we published the two classes of models for the 3 sub-tasks on huggingface: The first class of models was trained on the full e-SNLI dataset, and the second class of models was trained on a subset of the e-SNLI dataset where all certain percentage of uninformative examples were filtered using various templates. The details of this are explained in the project report, but for reference, the Levenshtein cutoff distance that was considered here is 13.
+In the remaining sections there will be an in-depth explanation on how to properly fine-tune the base model, but to make testing and evaluation easily accessible, we published the two classes of models for the 3 sub-tasks on huggingface: The first class of models was trained on the full e-SNLI dataset, and the second class of models was trained on a subset of the e-SNLI dataset, where a certain percentage of uninformative examples were filtered out using various templates. The details of this are explained in the project report, but for transparency, a Levenshtein cutoff distance of 13 was considered for preprocessing the dataset.
 
 Task | Model (full e-SNLI) | Model (subset e-SNLI)
 |---|---|---|
@@ -45,16 +45,16 @@ pip install -r requirements.txt
 
 ## Preprocessing
 
-This is an optional step, and is specifically there to download and reduce the size of the e-SNLI dataset by filtering out uninformative explanations. The degree to which these explanations are matched and then removed is based on the cutoff value for the Levenshtein metric that is used to compare all training example explanations against all templates. This could be considered as the pattern matching 'strictness', and is necessary because most explanations will not be entirely identical to their respective templates.
+This is an optional step, and is specifically there to download and reduce the size of the e-SNLI dataset by filtering out uninformative explanations. The degree to which these explanations are matched and then removed is based on the cutoff value for the Levenshtein metric that is used to compare all training example explanations against all templates. This could be considered as the pattern matching 'strictness' (where lower means more strict), and is necessary because most explanations will not be entirely identical to their respective templates.
 
 The program can take any of the following arguments:
 
 Optional argument | Definition | Default value
 |---|---|---|
 | --dataset_name DATASET_NAME | The name of the dataset to be saved after preprocessing. | esnli_reduced
-| --distance_cutoff DISTANCE_CUTOFF | The cutoff value for the edit distance based pattern matching criterion | 13
+| --distance_cutoff DISTANCE_CUTOFF | The cutoff value for the edit distance based pattern matching criterion. | 13
 
-An example of how the preprocessing program could be run with non-default values is the following:
+The resulting dataset will then be stored in the `data` directory. For the sake of simplicity, we provide the preprocessed dataset with default values as `data/esnli_reduced`. An example of how the preprocessing program could be run with non-default values is as follows:
 
 ```bash
 python nli.py preprocess --dataset_name "preprocessed_dataset" --distance_cutoff 11
@@ -74,17 +74,21 @@ Optional argument | Definition | Default value
 | --eval_steps EVAL_STEPS | Number of evaluation steps. | 100
 | --logging_steps LOGGING_STEPS | Number of logging steps. | 20
 | --save_steps SAVE_STEPS | Number of steps until saving checkpoint. | 100
-| --task TASK | The type of model being trained. | 2
+| --task {0,1,2} | The type of model being trained. | 2
 | --subset_size SUBSET_SIZE | The percentage (from 0 to 1) of the dataset that is used during training. | 1
 | --custom_dataset CUSTOM_DATASET | Name of the custom dataset. | -
 
-TODO: double check these, and maybe explain a bit more here.
+The resulting model will be stored under the `data/[MODEL_DIR]` directory and is named according to the date and time of training completion. The tensorboard statistics will be stored under the `data/runs` folder.
+
+Other hyperparameters, such as weight decay and the learning rate, are hardcoded at `4e-5` and `0.01` respectively since they are a safe option for the fine-tuning of models for NLI tasks. An example of how the training program could be run with non-default values is as follows:
 
 ```bash
 python nli.py train --logging_steps 100 --save_steps 10000 --eval_steps 200  --task 1
 ```
 
 ## Prediction
+
+Prediction simply means model inference, and it is used for programatically running an NLI model according to the aforementioned sub-tasks.
 
 __Note__: arguments in __boldface__ are required. Moreover, there is a distinction between the 'custom' option in the `model_type` argument, which refers to the uninformative explanation filtered dataset, and 'custom' in specifying the `custom_model` argument, which refers to the name of the model that is locally stored on the computer.
 
@@ -93,17 +97,35 @@ __Note__: arguments in __boldface__ are required. Moreover, there is a distincti
 | __--premise PREMISE__ | The premise string. | -
 | __--hypothesis HYPOTHESIS__ | The hypothesis string. | -
 | --label {entailment,neutral,contradiction} | The corresponding label. | -
-| --task TASK | The type of model used for inference. | 2
+| --task {0,1,2} | The type of model used for inference. | 2
 | --model_type {standard, custom} | The type of model used in the prediction. | standard
 | --custom_model CUSTOM_MODEL | Name of the locally stored model. | -
 
-TODO: double check these, and explain a bit more and also extend functionality with argparse.
+It is also important to note that the label argument is not strictly enforced, but should be specified when run for task 1. An example of predicting the label and explanation for a premise and hypothesis pair can be done as follows:
 
 ```bash
 python nli.py predict --premise "The dog's barking woke up the cat" --hypothesis "the feline was sleeping" --task 2
 ```
 
+Likewise, predicting the explanation given a premise, hypothesis and label can be done as follows:
+
+```bash
+python nli.py predict --premise "The dog's barking woke up the cat" --hypothesis "the feline was sleeping" --label entailment --task 1
+```
+
 ## Evaluation
+
+The evaluation of a model's explanation over the test split of the dataset can be carried out using two classes of metrics:
+
+1. Neural-based explanation evaluation, using the [BARTScore](https://github.com/neulab/BARTScore) metric.
+2. Text-based explanation evaluation, using the [ROUGE-{1,2,L}](https://huggingface.co/spaces/evaluate-metric/rouge) metrics.
+
+Based on the evaluation class, the program generates the following output csv files:
+
+1. `[MODEL_NAME]_neural_scores.csv`, consisting of the test set explanations and their neural scores, sorted in descending order. 
+2. `[MODEL_NAME]_rogue_scores.csv`, consisting of the test set explanations and the respective ROUGE-{1,2,L} scores, as well as the max scores across the different example explanations.
+
+Both evaluations also come with a summary text file that reports the average score and standard deviation, as well as the percentage of correctly labeled predictions (for tasks 0 and 2). A final csv file is generated called `allResults.csv`, which is a concatenation of all results, and can be used for analysis.
 
 __Note__: There is a distinction between the 'custom' option in the `model_type` argument, which refers to the uninformative explanation filtered dataset, and 'custom' in specifying the `custom_model` argument, which refers to the name of the model that is locally stored on the computer.
 
@@ -117,8 +139,7 @@ Optional argument | Definition | Default value
 | --custom_explanation_model CUSTOM_EXPLANATION_MODEL | Name of the locally stored explanation model. | -
 | --custom_label_explanation_model CUSTOM_LABEL_EXPLANATION_MODEL | Name of the locally stored label and explanation model. | -
 
-
-TODO: give brief overview of what is in output files, maybe extend functionality a bit with argparse and then do the same for prediction  
+An example of how the evaluation program could be run with non-default values and manually loaded models is as follows:
 
 ```bash
 python nli.py evaluate --subset_size 0.001 --model_type custom --custom_label_model "label" --custom_explanation_model "exp" --custom_label_explanation_model "label-exp"
@@ -140,4 +161,6 @@ squeue --job [JOB_ID]
 
 ## Jupyter Notebooks
 
-TODO: explain the notebooks that are contained
+In the `notebooks` directory there is a collection of Jupyter notebooks that are used for exploratory data analysis, template matching analysis and the model evaluations analysis.
+
+__Note__: It is recommended to run the jupyter server from within the notebooks folder as to correctly load the python modules and additional files.
