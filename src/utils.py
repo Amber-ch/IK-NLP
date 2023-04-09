@@ -1,3 +1,5 @@
+"""Utilities used in the package."""
+
 import time
 import torch
 
@@ -20,7 +22,8 @@ def select_device(gpu=True):
 
 
 def get_timestamp():
-  """Timestamp utility"""
+  """Timestamp utility."""
+
   # Get the current time in seconds since the epoch
   current_time = time.time()
   # Convert the current time to a struct_time object

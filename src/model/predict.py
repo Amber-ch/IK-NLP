@@ -1,16 +1,19 @@
-"""Implements the model inference."""
+"""Module that implements the model inference program."""
 
 import nltk
 
-from transformers import AutoTokenizer
-from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 
 MODEL_DIR = 'data'
 
 
 def run(args):
-    """Driver code."""
+    """Run prediction on the specified inputs and model.
+    
+    Args: 
+        args (args): The arguments from argparse.
+    """
 
     # Load punkt tokenizer
     try:

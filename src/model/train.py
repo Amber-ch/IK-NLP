@@ -85,7 +85,7 @@ class TrainModel:
         )
 
     def _setup_dataset(self, name='esnli', custom=None):
-        """Set up the dataset
+        """Set up the dataset.
 
         Args:
             name (str, optional): Name of the Hugging Face model. Defaults to 'esnli'.
@@ -113,7 +113,7 @@ class TrainModel:
             seed).select(range(test_size))
 
     def _tokenize(self, example):
-        """Tokenize the input and target strings"""
+        """Tokenize the input and target strings."""
 
         tokenized = self.tokenizer(example['input'])
 
@@ -126,7 +126,7 @@ class TrainModel:
         return tokenized
 
     def _preprocess_data(self, task=2):
-        """Preprocess the dataset
+        """Preprocess the dataset.
 
         Format the dataset with inputs that follow the prompt format, and targets according to the task number.
         Finally tokenize the the inputs and targets.
@@ -156,13 +156,13 @@ class TrainModel:
         self.dataset = encoded_dataset
 
     def _compute_metrics(self, eval_pred):
-        """Compute training metrics
+        """Compute training metrics.
 
         Args:
             eval_pred (tuple): Contains predictions and the target label.
 
         Returns:
-            dict: Metrics and their values
+            dict: Metrics and their values.
         """
 
         metric = load_metric("rouge")
@@ -232,7 +232,11 @@ class TrainModel:
 
 
 def run(args):
-    """Driver code."""
+    """Run training. 
+    
+    Args: 
+        args (args): The arguments from argparse.
+    """
 
     print('Welcome')
     print('You are about to train a beast of a model, enjoy :)')
