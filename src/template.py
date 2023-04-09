@@ -17,14 +17,14 @@ def _general_templates(premise, hypothesis):
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
-        0: f"{premise}",
-        1: f"{hypothesis}",
-        2: f"{hypothesis} {premise}",
-        3: f"{premise} {hypothesis}",
-        4: f"sentence 1 states {premise}. sentence 2 is stating {hypothesis}",
-        5: f"sentence 2 states {hypothesis}. sentence 1 is stating {premise}",
-        6: f"there is {hypothesis}",
-        7: f"there is {premise}"
+        "P"         : f"{premise}",
+        "H"         : f"{hypothesis}",
+        "H_P"       : f"{hypothesis} {premise}",
+        "P_H"       : f"{premise} {hypothesis}",
+        "S1_P_S2_H" : f"sentence 1 states {premise}. sentence 2 is stating {hypothesis}",
+        "S2_H_S1_P" : f"sentence 2 states {hypothesis}. sentence 1 is stating {premise}",
+        "H_EXISTS"  : f"there is {hypothesis}",
+        "P_EXISTS"  : f"there is {premise}"
     }
     return patterns
 
@@ -43,24 +43,24 @@ def _contradiction_templates(premise, hypothesis):
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
-        0: f"in sentence 1 {premise} while in sentence 2 {hypothesis}",
-        1: f"it can either be {premise} or {hypothesis}",
-        2: f"it cannot be {hypothesis} if {premise}",
-        3: f"either {premise} or {hypothesis}",
-        4: f"either {hypothesis} or {premise}",
-        5: f"{premise} and other {hypothesis}",
-        6: f"{hypothesis} and other {premise}",
-        7: f"{hypothesis} after {premise}",
-        8: f"{premise} is not the same as {hypothesis}",
-        9: f"{hypothesis} is not the same as {premise}",
-        10: f"{premise} is contradictory to {hypothesis}",
-        11: f"{hypothesis} is contradictory to {premise}",
-        12: f"{premise} contradicts {hypothesis}",
-        13: f"{hypothesis} contradicts {premise}",
-        14: f"{premise} cannot also be {hypothesis}",
-        15: f"{hypothesis} cannot also be {premise}",
-        16: f"either {premise} or {hypothesis} not both at the same time",
-        17: f"{premise} or {hypothesis} not both at the same time"
+        "S1_P_WHILE_S2_H"           : f"in sentence 1 {premise} while in sentence 2 {hypothesis}",
+        "CAN_EITHER_BE_P_OR_H"      : f"it can either be {premise} or {hypothesis}",
+        "NOT_H_IF_P"                : f"it cannot be {hypothesis} if {premise}",
+        "EITHER_P_OR_H"             : f"either {premise} or {hypothesis}",
+        "EITHER_H_OR_P"             : f"either {hypothesis} or {premise}",
+        "P_AND_OTHER_H"             : f"{premise} and other {hypothesis}",
+        "H_AND_OTHER_P"             : f"{hypothesis} and other {premise}",
+        "H_AFTER_P"                 : f"{hypothesis} after {premise}",
+        "P_NOT_SAME_AS_H"           : f"{premise} is not the same as {hypothesis}",
+        "H_NOT_SAME_AS_P"           : f"{hypothesis} is not the same as {premise}",
+        "P_CONTRADICTS_H"           : f"{premise} is contradictory to {hypothesis}",
+        "H_CONTRADICTS_P"           : f"{hypothesis} is contradictory to {premise}",
+        "P_CONTRADICTS_H_ALT"       : f"{premise} contradicts {hypothesis}",
+        "H_CONTRADICTS_P_ALT"       : f"{hypothesis} contradicts {premise}",
+        "P_CANNOT_ALSO_BE_H"        : f"{premise} cannot also be {hypothesis}",
+        "H_CANNOT_ALSO_BE_P"        : f"{hypothesis} cannot also be {premise}",
+        "EITHER_P_OR_H_NOT_BOTH"    : f"either {premise} or {hypothesis} not both at the same time",
+        "P_OR_H_NOT_BOTH"           : f"{premise} or {hypothesis} not both at the same time"
     }
     return patterns
 
@@ -79,17 +79,17 @@ def _neutral_templates(premise, hypothesis):
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
-        0: f"just because {premise} doesn't mean {hypothesis}",
-        1: f"cannot infer the {hypothesis}",
-        2: f"one cannot assume {hypothesis}",
-        3: f"one cannot infer that {hypothesis}",
-        4: f"cannot assume {hypothesis}",
-        5: f"{premise} does not mean {hypothesis}",
-        6: f"we don't know that {hypothesis}",
-        7: f"the fact that {premise} doesn't mean {hypothesis}",
-        8: f"the fact that {premise} does not imply {hypothesis}",
-        9: f"the fact that {premise} does not always mean {hypothesis}",
-        10: f"the fact that {premise} doesn't always imply {hypothesis}"
+        "JUST_BECAUSE_P_NOT_MEAN_H" : f"just because {premise} doesn't mean {hypothesis}",
+        "CANNOT_INFER_H"            : f"cannot infer the {hypothesis}",
+        "CANNOT_ASSUME_H"           : f"one cannot assume {hypothesis}",
+        "CANNOT_INFER_THAT_H"       : f"one cannot infer that {hypothesis}",
+        "CANNOT_ASSUME_H_ALT"       : f"cannot assume {hypothesis}",
+        "P_NOT_MEAN_H"              : f"{premise} does not mean {hypothesis}",
+        "DONT_KNOW_H"               : f"we don't know that {hypothesis}",
+        "FACT_P_NOT_MEAN_H"         : f"the fact that {premise} doesn't mean {hypothesis}",
+        "FACT_P_NOT_IMPLY_H"        : f"the fact that {premise} does not imply {hypothesis}",
+        "FACT_P_NOT_ALWAYS_MEAN_H"  : f"the fact that {premise} does not always mean {hypothesis}",
+        "FACT_P_NOT_ALWAYS_IMPLY_H" : f"the fact that {premise} doesn't always imply {hypothesis}"
     }
     return patterns
 
@@ -108,24 +108,24 @@ def _entailment_templates(premise, hypothesis):
     premise = premise.lower()
     hypothesis = hypothesis.lower()
     patterns = {
-        0: f"{premise} implies {hypothesis}",
-        1: f"if {premise} then {hypothesis}",
-        2: f"{premise} would imply {hypothesis}",
-        3: f"{hypothesis} is a rephrasing of {premise}",
-        4: f"{premise} is a rephrasing of {hypothesis}",
-        5: f"in both sentences {hypothesis}",
-        6: f"{premise} would be {hypothesis}",
-        7: f"{premise} can also be said as {hypothesis}",
-        8: f"{hypothesis} can also be said as {premise}",
-        9: f"{hypothesis} is a less specific rephrasing of {premise}",
-        10: f"this clarifies that {hypothesis}",
-        11: f"if {premise} it means {hypothesis}",
-        12: f"{hypothesis} in both sentences",
-        13: f"{hypothesis} in both",
-        14: f"{hypothesis} is same as {premise}",
-        15: f"{premise} is same as {hypothesis}",
-        16: f"{premise} is a synonym of {hypothesis}",
-        17: f"{hypothesis} is a synonym of {premise}"
+        "P_IMPLIES_H"           : f"{premise} implies {hypothesis}",
+        "IF_P_THEN_H"           : f"if {premise} then {hypothesis}",
+        "P_WOULD_IMPLY_H"       : f"{premise} would imply {hypothesis}",
+        "H_REPHRASING_OF_P"     : f"{hypothesis} is a rephrasing of {premise}",
+        "P_REPHRASING_OF_H"     : f"{premise} is a rephrasing of {hypothesis}",
+        "BOTH_SENTENCES_H"      : f"in both sentences {hypothesis}",
+        "P_WOULD_BE_H"          : f"{premise} would be {hypothesis}",
+        "P_CAN_BE_SAID_AS_H"    : f"{premise} can also be said as {hypothesis}",
+        "H_CAN_BE_SAID_AS_P"    : f"{hypothesis} can also be said as {premise}",
+        "H_LESS_SPECIFIC_P"     : f"{hypothesis} is a less specific rephrasing of {premise}",
+        "CLARIFIES_H"           : f"this clarifies that {hypothesis}",
+        "IF_P_IT_MEANS_H"       : f"if {premise} it means {hypothesis}",
+        "H_IN_BOTH_SENTENCES"   : f"{hypothesis} in both sentences",
+        "H_IN_BOTH"             : f"{hypothesis} in both",
+        "H_SAME_AS_P"           : f"{hypothesis} is same as {premise}",
+        "P_SAME_AS_H"           : f"{premise} is same as {hypothesis}",
+        "P_SYNONYM_OF_H"        : f"{premise} is a synonym of {hypothesis}",
+        "H_SYNONYM_OF_P"        : f"{hypothesis} is a synonym of {premise}"
     }
     return patterns
 
