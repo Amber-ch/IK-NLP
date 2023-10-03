@@ -1,6 +1,6 @@
 # IK-NLP Project — Evaluating Explanations in Natural Language Inference
 
-This repository provides the source code for training and evaluating natural language inference (NLI) models, as well as running predictions on single inputs.
+This repository provides the source code for training and evaluating natural language inference (NLI) models, as well as running predictions on single inputs. You can find the scientific report [here](https://github.com/Amber-ch/IK-NLP/blob/main/NLP_NLI___Explanation_Project.pdf)
 
 ## Overview
 
